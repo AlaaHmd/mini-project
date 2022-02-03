@@ -1,0 +1,4 @@
+customer_name,customer_address,customer_phone,courier_index,status
+ demo," 98, yt road",24677,2, 2
+ui,"45,road",907,2,Out For Delivery
+Mero,"98, hillingdon road",0934,2,Waiting For Deliver
