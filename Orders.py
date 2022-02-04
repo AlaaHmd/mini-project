@@ -1,3 +1,4 @@
+from linecache import updatecache
 from typing import List, Dict
 import csv
 import Products_couriers
@@ -13,7 +14,7 @@ class Orders:
         self.customer_phone = customer_phone
         self.courier_index = courier_index
         self.status = status
-        #self = dict(self)
+        
         
         
     def add_order_to_file(self):
@@ -27,7 +28,7 @@ class Orders:
             writer.writerow( {  'customer_name' : self.customer_name,
             'customer_address' : self.customer_address,
             'customer_phone': self.customer_phone,
-            'courier_index' : self.courier_index,
+            'courier_index' : int(self.courier_index),
             'status' : self.status    }) 
         os.system('cls')
         print('A new order has been added...')
@@ -59,9 +60,11 @@ def print_orders_dictionary_with_indeces():
         print('***  The Orders list:   ***\n')    
         i = 0
         for row in csv_file_content:
-            print(f'''{str(i)} : {row.get('customer_name')} ,{row.get('customer_address')}, {row.get('customer_phone')} , {str(row.get('courier_index'))} , {row.get('status')}''')
+            print("Order index : "+ str(i),row)
+           # print(f'''{str(i)} : {row.get('customer_name')} ,{row.get('customer_address')}, {row.get('customer_phone')} , {str(row.get('courier_index'))} , {row.get('status')}''')
             i += 1
             order_list.append(row)
+        #print(order_list)
         print('\n')
 
     return order_list
@@ -128,36 +131,96 @@ def write_orders_file(Orders_list):
         
     
 def delete_courier_and_order (courier_index):
-    
-        with open('orders.csv', 'r', newline= '') as file_stream:
-            csv_file_content = csv.DictReader(file_stream)
+    order_list = []
+    with open('orders.csv', 'r', newline= '') as file_stream:
+        csv_file_content = csv.DictReader(file_stream)
 
-            print(next(csv_file_content))
-
-            order_list = []
-            for row in csv_file_content:
-                if int(row.get('courier_index'))== courier_index:
-                    del row
-                    print(f'Courier index :{courier_index} has been deleted.')
-                else:
-                    order_list.append(row)
+            
+        for row in csv_file_content:
+            print(row)
+            time.sleep(4)
+            if row.get('courier_index') == courier_index:
+                del row
+                print(f'Courier :{courier_index} has been deleted along with the connected orders.')
+            else:
+                order_list.append(row)
         
-        write_orders_file(order_list)
+    write_orders_file(order_list)
+
+
+def order_status_options():
+    order_status_list = '''
+            These are the available statuses:
+
+            [0] Preparing
+            [1] Waiting For Deliver
+            [2] Out For Delivery
+            [3] Delivered
+                            ''' 
+    print(order_status_list)
+
+def Update_order_status(user_input_new_status, order ):  
+                 
+    if user_input_new_status == '1':
+        order['status'] = 'Waiting For Deliver'
+    elif user_input_new_status == '2':
+        order['status'] = 'Out For Delivery'
+    elif user_input_new_status == '3':
+        order['status'] = 'Out For Delivery'
+
+    return order
+
+
         
 def update_order(order):
 
+    status = order.get('status')
+    customer_new_address = order.get('customer_address')
+    customer_new_name = order.get('customer_name')
+    user_input_courier_index = order.get('courier_index')
+    customer_phone = order.get('customer_phone')
+
+
     for key, value in order.items():
-        user_input_to_change_value = input(f'Enter the new value for {key}')
+        #user_input_to_change_value = input(f'Enter the new value for {key} : ')
         
-        if not(user_input_to_change_value):
-            pass
+        # if not(user_input_to_change_value):
+        #     pass
+        if key == 'courier_index':
+            print('\nCouriers list:\n')
+            Products_couriers.list_indeces('couriers.txt')
+            user_input_courier_index = input('\nEnter the index for the new courier: ')
+            order['courier_index'] = user_input_courier_index
+        elif key == 'status':
+            order_status_options()
+            user_input_new_status = input(f'What status you like the order to have?  ')
+
+            if user_input_new_status == '0':
+                status = 'Preparing!'           
+            elif user_input_new_status == '1':
+                status = 'Waiting For Deliver'
+            elif user_input_new_status == '2':
+                status = 'Out For Delivery'
+            elif user_input_new_status == '3':
+                status = 'Delivered'
+
+        elif key == 'customer_name':
+            customer_new_name = input('Please, enter the new name for the customer: ')
+            order['customer_name'] = customer_new_name
+        elif key == 'customer_address':
+            customer_new_address = input('Please, enter the new customer address: ')
+            order['customer_address'] = customer_new_address
+        elif key == 'customer_phone':
+            customer_phone = input('Please, enter the new customer phone: ')
+            order['customer_phone'] = customer_phone
         else:
-            if key == 'coustomer_index':
-                order[key] = int(user_input_to_change_value)
-            else:
-                order[key] = user_input_to_change_value
-                
-    print('Order has been updated.')
+            pass
+        
+    order['status']  = status     
+    #new_order = Orders(customer_new_name, customer_new_address, customer_phone, user_input_courier_index,status)
+    #new_order.add_order_to_file()
+
+    #print('Order has been updated.')
     return order
 
 
@@ -176,14 +239,7 @@ def display_orders_menu():
         [4] Update Existing Order
         [5] Delete order
                          '''
-    order_status_list = '''
-            These are the available statuses:
-
-            [0] Preparing
-            [1] Waiting For Deliver
-            [2] Out For Delivery
-            [3] Delivered
-                            '''                     
+                        
     while True :   
         print('Orders Menu Options'.center(100))                 
         print(orders_menu_options)
@@ -207,7 +263,7 @@ def display_orders_menu():
             Products_couriers.list_indeces('couriers.txt')
 
             user_input_courier_index = input('Enter the index of the courier: ')
-            new_order = Orders(str(user_input_customer_name), str(user_input_customer_address), str(user_input_customer_phone), int(user_input_courier_index), status= 'Preparing' )
+            new_order = Orders(user_input_customer_name, user_input_customer_address, user_input_customer_phone, int(user_input_courier_index), status= 'Preparing' )
             new_order.add_order_to_file()
             continue
 
@@ -219,38 +275,41 @@ def display_orders_menu():
             order_user_input_update_status = input ('Which order would you like to Update? ')
 
 
-            print(order_status_list)
+            order_status_options()
             user_input_new_status = input(f'What status would order {order_user_input_update_status} to have?  ')
-
+            
             orders_list = print_orders_dictionary_with_indeces()
-
-            for index , order in enumerate(orders_list):
-                if index ==  int(order_user_input_update_status):
-                    if user_input_new_status == '1':
-                        order['status'] = 'Waiting For Deliver'
-                    elif user_input_new_status == '2':
-                        order['status'] = 'Out For Delivery'
-                    elif user_input_new_status == '3':
-                        order['status'] = 'Delivered'
-
+            order_to_update =  orders_list[int(order_user_input_update_status)]
+     
+            if user_input_new_status == '1':
+                order_to_update['status'] = 'Waiting For Deliver'
+            elif user_input_new_status == '2':
+                order_to_update['status'] = 'Out For Delivery'
+            elif user_input_new_status == '3':
+                order_to_update['status'] = 'Delivered'
+            
             write_orders_file(orders_list)
             os.system('cls')
             print(f'order {order_user_input_update_status} status has been Updated..')
             time.sleep(3)
             continue
+
         elif order_user_input1 == '4':
             os.system('cls')
-            print('Orders List with Indeces:\n')
             print_orders_dictionary_with_indeces()
-            order_user_input_update_status = input ('Which order would you like to Update? ')
+            index_of_order_update = input ('\nWhich order would you like to Update? ')
 
             list_of_orders = print_orders_dictionary_with_indeces()
+            order_to_renew =  list_of_orders[int(index_of_order_update)]
+        #    order_renew = Update_order_status(user_input_new_status,order_to_update )
 
-            for index , order in enumerate(list_of_orders):
 
-                if index ==  int(order_user_input_update_status):
-                    order = update_order(order)
-        
+            # for index , order in enumerate(list_of_orders):
+
+            #     if index ==  int(order_user_input_update_status):
+            order_to_renew = update_order(order_to_renew)
+            list_of_orders.append(order_to_renew)
+            list_of_orders.pop(int(index_of_order_update))
             write_orders_file(list_of_orders)
             continue
         elif order_user_input1 == '5':
@@ -258,8 +317,8 @@ def display_orders_menu():
             os.system('cls')
             print('Orders List with Indeces:\n')
             list_of_orders = print_orders_dictionary_with_indeces()
-            courier_index_to_delet = input ('Which couriers would you like to delete? ')
+            courier_index_to_delet = input ('Which courier index would you like to delete? ')
 
-            delete_courier_and_order(int(courier_index_to_delet ))
+            delete_courier_and_order(courier_index_to_delet )
             continue
         
