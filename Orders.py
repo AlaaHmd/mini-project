@@ -7,7 +7,7 @@ import time
 
 class Orders:
 
-    def __init__(self, customer_name, customer_address, customer_phone, courier_index, status):
+    def __init__(self, customer_name : str, customer_address : str, customer_phone : str, courier_index : int, status : str):
 
         self.customer_name = customer_name
         self.customer_address = customer_address
@@ -19,59 +19,66 @@ class Orders:
         
     def add_order_to_file(self):
 
-       
+        
         with open('orders.csv', 'a+', newline= '') as file_data:
             header = ['customer_name','customer_address',
         'customer_phone', 'courier_index', 'status']
             writer = csv.DictWriter(file_data,fieldnames= header )
-       # writer.writeheader()
-            writer.writerow( {  'customer_name' : self.customer_name,
+
+            if (os.stat("orders.csv").st_size == 0):
+
+                writer.writeheader()
+                writer.writerow( {  'customer_name' : self.customer_name,
             'customer_address' : self.customer_address,
             'customer_phone': self.customer_phone,
-            'courier_index' : int(self.courier_index),
+            'courier_index' : self.courier_index,
+            'status' : self.status    })
+
+            else:
+
+                writer.writerow( {  'customer_name' : self.customer_name,
+            'customer_address' : self.customer_address,
+            'customer_phone': self.customer_phone,
+            'courier_index' : self.courier_index,
             'status' : self.status    }) 
+
         os.system('cls')
         print('A new order has been added...')
         time.sleep(3) 
 
 
-    # def add_new_order_to_csv_file(self):
-        
-    #     with open('orders.csv', 'w', newline= '') as file_data:
-    #         header = ['customer_name','customer_address','customer_phone', 'courier_index', 'status']
-    #         writer = csv.DictWriter(file_data, fieldnames= header)
-    #         writer.writeheader()
-    #         writer.writerow( {  'customer_name' : self.customer_name,
-    #         'customer_address' : self.customer_address,
-    #         'customer_phone': self.customer_phone,
-    #         'courier_index' : self.courier_index,
-    #         'status' : self.status    })
 
 
 def print_orders_dictionary_with_indeces():
+
     order_list = []
+    try:
 
-    with open('orders.csv', 'r', newline= '') as file_stream:
+        with open('orders.csv', 'r', newline= '') as file_stream:
+            header =['customer_name','customer_address',
+            'customer_phone', 'courier_index', 'status']
+            csv_file_content = csv.DictReader(file_stream)
+            header = csv_file_content.fieldnames
 
-        csv_file_content = csv.DictReader(file_stream)
+            if  (os.stat("orders.csv").st_size == 0):
+                print ('No Orders.....')
 
-        #next(csv_file_content)
-
-        print('***  The Orders list:   ***\n')    
-        i = 0
-        for row in csv_file_content:
-            print("Order index : "+ str(i),row)
-           # print(f'''{str(i)} : {row.get('customer_name')} ,{row.get('customer_address')}, {row.get('customer_phone')} , {str(row.get('courier_index'))} , {row.get('status')}''')
-            i += 1
-            order_list.append(row)
-        #print(order_list)
+            else:
+                print('***  The Orders list:   ***\n')    
+                i = 0
+                print( 'Order index ,', header)
+                for row in csv_file_content:
+                    print(f'''{str(i)}      :      {row.get('customer_name')}      ,      {row.get('customer_address')}      ,      {row.get('customer_phone')}      ,      {row.get('courier_index')}      ,      {row.get('status')}''')
+                    i += 1
+                    order_list.append(row)
+       
         print('\n')
+        return order_list
 
-    return order_list
+    except FileNotFoundError as bad_erro:
+        print(f' The following exception occured :{bad_erro}')
 
-
-
-
+  
 
 def add_order_to_csv(order):
 
@@ -80,27 +87,10 @@ def add_order_to_csv(order):
     order_list.append(order)
     write_orders_file(order_list)
 
-    # with open('orders.csv', 'a', newline= '') as file_data:
-    #     header = ['customer_name','customer_address',
-    #     'customer_phone', 'courier_index', 'status']
-    #     writer = csv.DictWriter(file_data,fieldnames= header  )
-    #    # writer.writeheader()
-    #     writer.writerow( {  'customer_name' : Orders.customer_name,
-    #         'customer_address' : Orders.customer_address,
-    #         'customer_phone': Orders.customer_phone,
-    #         'courier_index' : Orders.courier_index,
-    #         'status' : Orders.status    }) 
     os.system('cls')
     print('A new order has been added...')
     time.sleep(3)
 
-# def update_order_status(order_index, new_status):
-
-        
-#     for key , value in kwargs:
-#         self.key = value
-
-#         Orders.add_order_after_change_status(self)
 
 
 
@@ -115,20 +105,7 @@ def write_orders_file(Orders_list):
             writer.writerow(order)
 
 
-# def print_orders_with_indces ():
 
-#      with open('orders.csv', 'r', newline= '') as file_stream:
-#         csv_file_content = csv.DictReader(file_stream)
-
-#        # print(next(csv_file_content))
-#         i = 0
-#         for row in csv_file_content:
-#             print(str(i) +":"+ row)
-#             i += 1
-
-             
-
-        
     
 def delete_courier_and_order (courier_index):
     order_list = []
@@ -148,6 +125,8 @@ def delete_courier_and_order (courier_index):
     write_orders_file(order_list)
 
 
+
+
 def order_status_options():
     order_status_list = '''
             These are the available statuses:
@@ -158,6 +137,8 @@ def order_status_options():
             [3] Delivered
                             ''' 
     print(order_status_list)
+
+
 
 def Update_order_status(user_input_new_status, order ):  
                  
@@ -174,53 +155,65 @@ def Update_order_status(user_input_new_status, order ):
         
 def update_order(order):
 
-    status = order.get('status')
-    customer_new_address = order.get('customer_address')
-    customer_new_name = order.get('customer_name')
-    user_input_courier_index = order.get('courier_index')
-    customer_phone = order.get('customer_phone')
-
-
     for key, value in order.items():
-        #user_input_to_change_value = input(f'Enter the new value for {key} : ')
-        
-        # if not(user_input_to_change_value):
-        #     pass
+    
         if key == 'courier_index':
             print('\nCouriers list:\n')
             Products_couriers.list_indeces('couriers.txt')
             user_input_courier_index = input('\nEnter the index for the new courier: ')
-            order['courier_index'] = user_input_courier_index
+
+            if not(user_input_courier_index):
+                user_input_courier_index = order.get('courier_index')
+            else:
+
+                order['courier_index'] = user_input_courier_index
+
         elif key == 'status':
             order_status_options()
             user_input_new_status = input(f'What status you like the order to have?  ')
 
-            if user_input_new_status == '0':
-                status = 'Preparing!'           
-            elif user_input_new_status == '1':
-                status = 'Waiting For Deliver'
-            elif user_input_new_status == '2':
-                status = 'Out For Delivery'
-            elif user_input_new_status == '3':
-                status = 'Delivered'
+            if not(user_input_new_status):
+                
+                status = order.get('status')
+            else:
+
+                if user_input_new_status == '0':
+                    status = 'Preparing!'           
+                elif user_input_new_status == '1':
+                    status = 'Waiting For Deliver'
+                elif user_input_new_status == '2':
+                    status = 'Out For Delivery'
+                elif user_input_new_status == '3':
+                    status = 'Delivered'
 
         elif key == 'customer_name':
             customer_new_name = input('Please, enter the new name for the customer: ')
-            order['customer_name'] = customer_new_name
+
+            if not(customer_new_name):
+                customer_new_name = order.get('customer_name')
+            else:
+                order['customer_name'] = customer_new_name
+
         elif key == 'customer_address':
             customer_new_address = input('Please, enter the new customer address: ')
-            order['customer_address'] = customer_new_address
+
+            if not(customer_new_address):
+                 customer_new_address = order.get('customer_address')
+            else:
+                order['customer_address'] = customer_new_address
+
         elif key == 'customer_phone':
             customer_phone = input('Please, enter the new customer phone: ')
-            order['customer_phone'] = customer_phone
+
+            if not(customer_phone):
+                customer_phone = order.get('customer_phone')
+            else:
+                order['customer_phone'] = customer_phone
         else:
             pass
         
-    order['status']  = status     
-    #new_order = Orders(customer_new_name, customer_new_address, customer_phone, user_input_courier_index,status)
-    #new_order.add_order_to_file()
+    order['status']  = status  
 
-    #print('Order has been updated.')
     return order
 
 
@@ -301,17 +294,18 @@ def display_orders_menu():
 
             list_of_orders = print_orders_dictionary_with_indeces()
             order_to_renew =  list_of_orders[int(index_of_order_update)]
-        #    order_renew = Update_order_status(user_input_new_status,order_to_update )
 
-
-            # for index , order in enumerate(list_of_orders):
-
-            #     if index ==  int(order_user_input_update_status):
             order_to_renew = update_order(order_to_renew)
             list_of_orders.append(order_to_renew)
             list_of_orders.pop(int(index_of_order_update))
             write_orders_file(list_of_orders)
+            os.system('cls') 
+            print(" ________________________________________ ")
+            print('|  Order successfully has been updated   |')
+            print("|________________________________________|")
+            time.sleep(3)
             continue
+
         elif order_user_input1 == '5':
 
             os.system('cls')
