@@ -1,5 +1,3 @@
-from linecache import updatecache
-from typing import List, Dict
 import csv
 import Products_couriers
 import os
@@ -19,32 +17,37 @@ class Orders:
         
     def add_order_to_file(self):
 
-        
-        with open('orders.csv', 'a+', newline= '') as file_data:
-            header = ['customer_name','customer_address',
-        'customer_phone', 'courier_index', 'status']
-            writer = csv.DictWriter(file_data,fieldnames= header )
+        try:
 
-            if (os.stat("orders.csv").st_size == 0):
+            with open('orders.csv', 'a+', newline= '') as file_data:
+                header = ['customer_name','customer_address',
+                'customer_phone', 'courier_index', 'status']
+                writer = csv.DictWriter(file_data,fieldnames= header )
+                # If the file is empty, write the header first then appen the new order.
+                if (os.stat("orders.csv").st_size == 0):
 
-                writer.writeheader()
-                writer.writerow( {  'customer_name' : self.customer_name,
-            'customer_address' : self.customer_address,
-            'customer_phone': self.customer_phone,
-            'courier_index' : self.courier_index,
-            'status' : self.status    })
+                    writer.writeheader()
+                    writer.writerow( {  'customer_name' : self.customer_name,
+                    'customer_address' : self.customer_address,
+                    'customer_phone': self.customer_phone,
+                    'courier_index' : self.courier_index,
+                    'status' : self.status    })
 
-            else:
 
-                writer.writerow( {  'customer_name' : self.customer_name,
-            'customer_address' : self.customer_address,
-            'customer_phone': self.customer_phone,
-            'courier_index' : self.courier_index,
-            'status' : self.status    }) 
+                else:
 
-        os.system('cls')
-        print('A new order has been added...')
-        time.sleep(3) 
+                    writer.writerow( {  'customer_name' : self.customer_name,
+                'customer_address' : self.customer_address,
+                'customer_phone': self.customer_phone,
+                'courier_index' : self.courier_index,
+                'status' : self.status    }) 
+
+            os.system('cls')
+            print('A new order has been added...')
+            time.sleep(3) 
+
+        except FileNotFoundError as err:
+            print(f'The following exception has araised: {err}')
 
 
 
@@ -55,8 +58,8 @@ def print_orders_dictionary_with_indeces():
     try:
 
         with open('orders.csv', 'r', newline= '') as file_stream:
-            header =['customer_name','customer_address',
-            'customer_phone', 'courier_index', 'status']
+           # header =['customer_name','customer_address',
+           # 'customer_phone', 'courier_index', 'status']
             csv_file_content = csv.DictReader(file_stream)
             header = csv_file_content.fieldnames
 
@@ -64,11 +67,11 @@ def print_orders_dictionary_with_indeces():
                 print ('No Orders.....')
 
             else:
-                print('***  The Orders list:   ***\n')    
+                print('***  The Orders list:   ***\n'.center(100))    
                 i = 0
-                print( 'Order index ,', header)
+                print( '                      ', header)
                 for row in csv_file_content:
-                    print(f'''{str(i)}      :      {row.get('customer_name')}      ,      {row.get('customer_address')}      ,      {row.get('customer_phone')}      ,      {row.get('courier_index')}      ,      {row.get('status')}''')
+                    print(f''''Order index :' {str(i)},      {row.get('customer_name')}      ,      {row.get('customer_address')}      ,      {row.get('customer_phone')}      ,      {row.get('courier_index')}      ,      {row.get('status')}''')
                     i += 1
                     order_list.append(row)
        
@@ -78,7 +81,6 @@ def print_orders_dictionary_with_indeces():
     except FileNotFoundError as bad_erro:
         print(f' The following exception occured :{bad_erro}')
 
-  
 
 def add_order_to_csv(order):
 
@@ -108,21 +110,28 @@ def write_orders_file(Orders_list):
 
     
 def delete_courier_and_order (courier_index):
-    order_list = []
-    with open('orders.csv', 'r', newline= '') as file_stream:
-        csv_file_content = csv.DictReader(file_stream)
 
+    order_list = []
+
+    try:
+
+        with open('orders.csv', 'r', newline= '') as file_stream:
+            csv_file_content = csv.DictReader(file_stream)
+            number_of_deleted_orders = 0
             
-        for row in csv_file_content:
-            print(row)
-            time.sleep(4)
-            if row.get('courier_index') == courier_index:
-                del row
-                print(f'Courier :{courier_index} has been deleted along with the connected orders.')
-            else:
-                order_list.append(row)
+            for row in csv_file_content:
         
-    write_orders_file(order_list)
+                if row.get('courier_index') == courier_index:
+                    del row
+                    number_of_deleted_orders += 1
+                else:
+                    order_list.append(row)
+            print(number_of_deleted_orders,'orders has/have been Successfuly Deleted')
+            time.sleep(3)
+        write_orders_file(order_list)
+
+    except FileNotFoundError as no_file:
+        print(f'The following error occured :{no_file}')
 
 
 
@@ -218,9 +227,6 @@ def update_order(order):
 
 
 
-
-
-
 def display_orders_menu():
     os.system('cls')
     
@@ -232,7 +238,8 @@ def display_orders_menu():
         [4] Update Existing Order
         [5] Delete order
                          '''
-                        
+  
+
     while True :   
         print('Orders Menu Options'.center(100))                 
         print(orders_menu_options)
@@ -246,27 +253,52 @@ def display_orders_menu():
             os.system('cls')
             print_orders_dictionary_with_indeces()
             time.sleep(3)
-            continue
+
+            user_choose_where_to_go_input = input('''         
+            Enter [y/Y] Return to Order Menu Options.
+                  [n/N] Return to Main Menu Options.  ''')
+            if user_choose_where_to_go_input in ['y', 'Y']:
+                os.system('cls')
+                continue
+            elif user_choose_where_to_go_input in ['n', 'N']:
+                os.system('cls')
+                break
+            else:
+                print('Invalid input, we\'ll redirect you to the Main Menu Options.')
+                time.sleep(2)
+                os.system('cls')
+
         elif order_user_input1 == '2':
             os.system('cls')
             user_input_customer_name =input('Enter the customer name: ')
             user_input_customer_address = input('Enter the customer address: ')
             user_input_customer_phone = input('Enter the customer number: ')
-            print('\nCouriers list\n')
+            os.system('cls')
+            print('\nChoose a courier index from the following couriers list:\n')
             Products_couriers.list_indeces('couriers.txt')
 
-            user_input_courier_index = input('Enter the index of the courier: ')
-            new_order = Orders(user_input_customer_name, user_input_customer_address, user_input_customer_phone, int(user_input_courier_index), status= 'Preparing' )
+            user_input_courier_index =input('The courier\'s index is: ')
+            new_order = Orders(str(user_input_customer_name), str(user_input_customer_address), str(user_input_customer_phone), int(user_input_courier_index), status= 'Preparing' )
             new_order.add_order_to_file()
-            continue
-
+            user_choose_where_to_go_input = input('''         
+            Enter [y/Y] Return to Order Menu Options.
+                  [n/N] Return to Main Menu Options.  ''')
+            if user_choose_where_to_go_input in ['y', 'Y']:
+                os.system('cls')
+                continue
+            elif user_choose_where_to_go_input in ['n', 'N']:
+                os.system('cls')
+                break
+            else:
+                print('Invalid input, we\'ll redirect you to the Main Menu Options.')
+                time.sleep(2)
+                os.system('cls')
         elif order_user_input1 == '3':
             os.system('cls')
             print('Orders List with Indeces:\n')
             print_orders_dictionary_with_indeces()
 
             order_user_input_update_status = input ('Which order would you like to Update? ')
-
 
             order_status_options()
             user_input_new_status = input(f'What status would order {order_user_input_update_status} to have?  ')
@@ -285,16 +317,27 @@ def display_orders_menu():
             os.system('cls')
             print(f'order {order_user_input_update_status} status has been Updated..')
             time.sleep(3)
-            continue
+            
+            user_choose_where_to_go_input = input('''         
+            Enter [y/Y] Return to Order Menu Options.
+                  [n/N] Return to Main Menu Options.  ''')
+            if user_choose_where_to_go_input in ['y', 'Y']:
+                os.system('cls')
+                continue
+            elif user_choose_where_to_go_input in ['n', 'N']:
+                os.system('cls')
+                break
+            else:
+                print('Invalid input, we\'ll redirect you to the Main Menu Options.')
+                time.sleep(2)
+                os.system('cls')
 
         elif order_user_input1 == '4':
             os.system('cls')
-            print_orders_dictionary_with_indeces()
-            index_of_order_update = input ('\nWhich order would you like to Update? ')
-
             list_of_orders = print_orders_dictionary_with_indeces()
+            index_of_order_update = input ('\nWhich order would you like to Update? ')
             order_to_renew =  list_of_orders[int(index_of_order_update)]
-
+            
             order_to_renew = update_order(order_to_renew)
             list_of_orders.append(order_to_renew)
             list_of_orders.pop(int(index_of_order_update))
@@ -304,7 +347,18 @@ def display_orders_menu():
             print('|  Order successfully has been updated   |')
             print("|________________________________________|")
             time.sleep(3)
-            continue
+            
+            user_choose_where_to_go_input = input('''         
+            Enter [y/Y] Return to Order Menu Options.
+                  [n/N] Return to Main Menu Options.  ''')
+            if user_choose_where_to_go_input in ['y', 'Y']:
+                continue
+            elif user_choose_where_to_go_input in ['n', 'N']:
+                break
+            else:
+                print('Invalid input, we\'ll redirect you to the Main Menu Options.')
+                time.sleep(2)
+                os.system('cls')
 
         elif order_user_input1 == '5':
 
@@ -314,5 +368,21 @@ def display_orders_menu():
             courier_index_to_delet = input ('Which courier index would you like to delete? ')
 
             delete_courier_and_order(courier_index_to_delet )
-            continue
+            os.system('cls')
+            
+            user_choose_where_to_go_input = input('''         
+            Enter [y/Y] Return to Order Menu Options.
+                  [n/N] Return to Main Menu Options.  ''')
+            if user_choose_where_to_go_input in ['y', 'Y']:
+                os.system('cls')
+                continue
+                    
+            elif user_choose_where_to_go_input in ['n', 'N']:
+                os.system('cls')
+                break
+        
+            else:
+                    print('Invalid input, we\'ll redirect you to the Main Menu Options.')
+                    time.sleep(2)
+                    os.system('cls')
         

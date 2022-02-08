@@ -270,8 +270,17 @@ def list_indeces(file_name):
 
     file_data = read_files(file_name)
 
-    for index, item in enumerate (file_data):
-        print(f'Item Name: {item}, Index: {index}')
+    if file_name == 'couriers.txt':
+        print('             Courier Name')
+        for index, item in enumerate (file_data):
+        
+            print(f' Index: {index}, {item}')
+
+    else:
+            print('          Product Name')
+            for index, item in enumerate (file_data):
+               
+                print(f' Index: {index}, {item}')
 
 
 
