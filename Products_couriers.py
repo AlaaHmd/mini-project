@@ -107,17 +107,24 @@ def print_function(txt_file):
     item_list = []
     try:
         concatenated_str=tuple()
-        print('The required list:\n')
+        if txt_file == 'products.txt':
+            print('Products List:\n')
+        else:
+            print('Couriers List:\n')
+            
         with open(txt_file ,'r') as file_data:
 
             lines = file_data.readlines()
              
             for line in lines:
-                item_list.append((line.rstrip()).capitalize())
-        item_list = sorted(item_list)
+                val = (line.rstrip()).capitalize()
+                item_list.append(val)
 
+        item_list = sorted(item_list)
+        i = 0
         for item in item_list:
-            print(item)
+            i +=1
+            print(f'{i}- {item}')
 
     except FileNotFoundError as err:
 
