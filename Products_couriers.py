@@ -186,7 +186,9 @@ def  display_product_menu(txt_file):
 
         os.system('cls')
         new_item = input('Enter The Product Name: ')
+        item_price = float(input('Enter the product price: '))
         add_function(new_item, txt_file)
+        
         user_input4 = input('\n\n Would you like to return to the Products Menu Options?(y/n)')
         move_after_change(user_input4 , txt_file)
      

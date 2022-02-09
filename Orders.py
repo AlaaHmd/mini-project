@@ -61,6 +61,7 @@ def print_orders_dictionary_with_indeces():
            # header =['customer_name','customer_address',
            # 'customer_phone', 'courier_index', 'status']
             csv_file_content = csv.DictReader(file_stream)
+            print(csv_file_content)
             header = csv_file_content.fieldnames
 
             if  (os.stat("orders.csv").st_size == 0):
@@ -75,7 +76,7 @@ def print_orders_dictionary_with_indeces():
                     i += 1
                     order_list.append(row)
        
-        print('\n')
+        print(order_list)
         return order_list
 
     except FileNotFoundError as bad_erro:
