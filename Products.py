@@ -107,20 +107,20 @@ def update_product():
     new_product_price = float(input('\nEnter the new price for the product: '))
 
     if not(new_name_for_product):
-        new_name_for_product = product_object.get('name')
+       pass
+
     else:
 
         product_object['name'] = new_name_for_product
             
     if not(new_product_price):
+        pass
                 
-        new_product_price = (products_list[updated_product_index]).get('price')
     else:
 
         product_object['price'] = new_product_price
 
-    products_list.append(product_object)
-    products_list.pop(updated_product_index)
+    products_list[updated_product_index] = product_object
     write_products_to_csvfile(products_list)
 
     os.system('cls')
@@ -234,3 +234,14 @@ def  display_product_menu():
         print(' Invalid Input, Try Again. ')
 
 
+
+
+def save_files():
+
+    try:
+
+        file_content = open('products.csv' , 'a') 
+        file_content.close() 
+
+    except FileNotFoundError as bad_file:
+        print(f'Can\'t read couriers.csv. {bad_file} has occured.')

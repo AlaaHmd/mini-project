@@ -1,8 +1,8 @@
 import os
 import time
 import Orders
-import Products_couriers
 import Products
+import Couriers
 
 
 def main():
@@ -39,7 +39,7 @@ def main():
         if user_input == '0':
 
             Products.save_file()
-            Products_couriers.save_files('couriers.txt')
+            Couriers.save_files()
             quit()
 
         elif user_input == '1':
@@ -48,7 +48,7 @@ def main():
             
         elif user_input == '2':
 
-            Products_couriers.display_courier_menu('couriers.txt' )
+            Couriers.display_courier_menu( )
         elif user_input == '3':
             Orders.display_orders_menu()
 
