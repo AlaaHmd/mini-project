@@ -136,8 +136,8 @@ def stay_at_products_menu_or_go_main():
     
     running = 1
     user_choose_where_to_go_input = input('''         
-            Enter [y/Y] Return to Products Menu Options.
-                  [n/N] Return to Main Menu Options.  ''')
+    Enter [Y/y] Return to Products Menu Options.
+          [N/n] Return to Main Menu Options.  ''')
 
     if user_choose_where_to_go_input in ['y', 'Y']:
         os.system('cls')

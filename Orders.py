@@ -1,6 +1,7 @@
 import csv
 from operator import index
 from typing import List
+from unicodedata import numeric
 import Couriers
 import os
 import time
@@ -57,7 +58,7 @@ class Orders:
 
 
 
-def print_orders_dictionary_with_indeces():
+def get_orders_list():
 
     order_list = []
     try:
@@ -67,22 +68,25 @@ def print_orders_dictionary_with_indeces():
             csv_file_content = csv.DictReader(file_stream)
             header = csv_file_content.fieldnames
 
-            if  (os.stat("orders.csv").st_size == 0):
-                print ('No Orders.....')
+            for row in csv_file_content:
 
-            else:
-                print('***  The Orders list:   ***\n'.center(100))    
-                index = 0
-                #print( '                      ', header)
-                for row in csv_file_content:
-                    print(f'Order index: {index}',row)
-                    index += 1
-                    order_list.append(row)
+                order_list.append(row)
        
         return order_list
 
     except FileNotFoundError as bad_erro:
         print(f' The following exception occured :{bad_erro}')
+
+
+
+def display_order_list(order_list):
+
+    index = 0
+    for row in order_list:
+        print(f'Order index: {index}',row)
+        index += 1
+ 
+
 
 
 
@@ -103,7 +107,8 @@ def delete_order ():
 
     os.system('cls')
     print('Orders List:\n')
-    list_of_orders = print_orders_dictionary_with_indeces()
+    list_of_orders = get_orders_list()
+    display_order_list(list_of_orders)
     order_index_to_delet = int(input ('\nEnter the order\'s index you like to delete: '))
     order_object = list_of_orders[order_index_to_delet]
     list_of_orders.pop(order_index_to_delet)
@@ -111,6 +116,7 @@ def delete_order ():
     os.system('cls')
     print(f'The following order has been deleted:\n {order_object}')
     time.sleep(3)
+
 
 
 def order_status_list():
@@ -125,10 +131,12 @@ def order_status_list():
     return order_status_list
   
 
-def Update_order_status( ):  
 
+
+def Update_order_status( ):  
          
-    orders_list=  print_orders_dictionary_with_indeces()
+    orders_list=  get_orders_list()
+    display_order_list(orders_list)
     order_index_to_update_status = int(input ('Which order would you like to Update its status? '))
 
     order_list_status = order_status_list()
@@ -153,7 +161,8 @@ def Update_order_status( ):
         
 def update_order():
 
-    list_of_orders = print_orders_dictionary_with_indeces()
+    list_of_orders = get_orders_list()
+    display_order_list(list_of_orders)
     index_of_order_update = int(input ('\nWhich order would you like to Update? '))
     order =  list_of_orders[index_of_order_update]
 
@@ -172,10 +181,12 @@ def update_order():
 
         elif key == 'status':
             order_statust_list = order_status_list()
-            user_input_new_status = int(input('\nEnter the index of the new status you want:  '))
+            user_input_new_status = input('\nEnter the index of the new status you want:  ')
 
-            if user_input_new_status in [0,len(order_statust_list)-1]:
-                order['status']  = order_statust_list[user_input_new_status] 
+            if user_input_new_status is not numeric or user_input_new_status is None:
+                pass
+            elif int(user_input_new_status) in [0,len(order_statust_list)-1]:
+                order['status']  = order_statust_list[int(user_input_new_status)] 
 
             else:   
                 pass
@@ -230,8 +241,8 @@ def stay_at_Orders_or_go_main():
     
     running = 1
     user_choose_where_to_go_input = input('''         
-            Enter [y/Y] Return to Order Menu Options.
-                  [n/N] Return to Main Menu Options.  ''')
+    Enter [Y/y] Return to Order Menu Options.
+          [N/n] Return to Main Menu Options.  ''')
 
     if user_choose_where_to_go_input in ['y', 'Y']:
         os.system('cls')
@@ -263,7 +274,33 @@ def create_new_order():
 
 
 
+def list_orders_grouping_by_status ():
 
+    orders_list = get_orders_list()
+    order_list_status = order_status_list()
+
+    order_list_grouped_by_status = []
+    os.system('cls')
+    print('\nGrouping orders by status:')
+    for status in order_list_status:
+           
+        counter = 0
+        for order in orders_list:
+            if(status == order.get('status')):
+                order_list_grouped_by_status.append(order)
+                counter += 1
+        
+        if counter !=0:
+            print(f'\n ** {status}  status **, {counter} orders: ')
+            for index in range(len(order_list_grouped_by_status)):
+                print(f'{index+1}- {order_list_grouped_by_status[index]}')    
+        
+        else:
+            print(f'\n ** {status} " status ** :\n No orders.')  
+
+        order_list_grouped_by_status.clear()
+
+    
 
 
 
@@ -277,6 +314,7 @@ def display_orders_menu():
         [3] Update Order Status
         [4] Update Existing Order
         [5] Delete order
+        [6] List Orders by Status.
                      '''
 
     while True :   
@@ -291,7 +329,10 @@ def display_orders_menu():
 
         elif order_user_input1 == '1':
             os.system('cls')
-            print_orders_dictionary_with_indeces()
+            print('***  The Orders list:   ***\n'.center(100)) 
+            order_list = get_orders_list()
+            display_order_list(order_list)
+
             time.sleep(3)
 
             running = stay_at_Orders_or_go_main()
@@ -346,6 +387,19 @@ def display_orders_menu():
                 break
             else:
                 continue
+        
+        elif order_user_input1 == '6':
+            os.system('cls')
+            list_orders_grouping_by_status()
+            time.sleep(3)
+
+            running = stay_at_Orders_or_go_main()
+            if not(running):
+                os.system('cls')
+                break
+            else:
+                continue
+        
 
         else:
             print('Invalid input, we\'ll redirect you to the Main Menu Options.')
