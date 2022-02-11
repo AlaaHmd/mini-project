@@ -17,7 +17,7 @@ def main():
     
                    '''
     print(welcome_text)
-    time.sleep(3)
+    time.sleep(2)
     os.system('cls')
     main_text=       '''                                     ______________________________________
                                     |                                      |
@@ -39,7 +39,7 @@ def main():
         if user_input == '0':
 
             Products.save_file()
-            Couriers.save_files()
+            Couriers.save_file()
             quit()
 
         elif user_input == '1':

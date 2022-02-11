@@ -1,4 +1,3 @@
-from ast import Continue
 import csv
 import os
 import time
@@ -132,36 +131,34 @@ def update_courier():
 
 def delete_courier ():
 
-    print_couriers_list_with_indeces()
+    courier_list = print_couriers_list_with_indeces()
     courier_index_to_delete= int(input('Enter the index of the courier that you want to delete : '))
 
-    couriers_list = []
+    courier_object = courier_list[courier_index_to_delete]
+    courier_list.pop(courier_index_to_delete)
 
-    try:
+    write_couriers_to_csvfile(courier_list)
+    os.system('cls')
+    print(f' The following courier : {courier_object}  has been deleted')
+    time.sleep(3)
 
-        with open('couriers.csv', 'r', newline= '') as file_stream:
-            csv_file_content = csv.DictReader(file_stream)
-            header = csv_file_content.fieldnames
 
-            number_of_deleted_courriers = 0
-            
-            for row_index , courier_dict in enumerate(csv_file_content):
 
-                if courier_index_to_delete == row_index:
+def stay_at_courier_menu_or_go_main():
+    
+    running = 1
+    user_choose_where_to_go_input = input('''         
+            Enter [y/Y] Return to Courier Menu Options.
+                  [n/N] Return to Main Menu Options.  ''')
 
-                    del courier_dict
-                    number_of_deleted_courriers +=1
-                else:
-                    couriers_list.append(courier_dict)
+    if user_choose_where_to_go_input in ['y', 'Y']:
+        os.system('cls')
+        return running
                     
-            print(number_of_deleted_courriers,'couriers has/have been Successfuly Deleted')
-            time.sleep(3)
-
-        write_couriers_to_csvfile(couriers_list)
-
-    except FileNotFoundError as no_file:
-
-        print(f'The following error occured :{no_file}')
+    elif user_choose_where_to_go_input in ['n', 'N']:
+        os.system('cls')
+        running = 0
+        return running
 
 
 
@@ -195,14 +192,12 @@ def display_courier_menu():
         os.system('cls')
         print_couriers_list_with_indeces()
 
-        user_choose_where_to_go_input = input('''         
-                                        Enter   [y/Y] Return to Couriers Menu Options.
-                                                [n/N] Return to Main Menu Options.    ''')
-
-        if user_choose_where_to_go_input in ['y','Y']:
-            Continue
-        else:
+        running = stay_at_courier_menu_or_go_main()
+        if not(running):
+            os.system('cls')
             break
+        else:
+            continue
 
     elif courier_menu_input == '2':
 
@@ -212,43 +207,37 @@ def display_courier_menu():
         courier_object = Couriers(new_courier_name,new_courier_phone)
         courier_object.add_courier_to_file()
 
-        user_choose_where_to_go_input = input('''         
-                                        Enter   [y/Y] Return to Couriers Menu Options.
-                                                [n/N] Return to Main Menu Options.    ''')
-
-        if user_choose_where_to_go_input in ['y','Y']:
-            Continue
-        else:
+        running = stay_at_courier_menu_or_go_main()
+        if not(running):
+            os.system('cls')
             break
+        else:
+            continue
 
     elif courier_menu_input == '3':
 
         os.system('cls')
 
         update_courier()
-        user_choose_where_to_go_input = input('''         
-                                        Enter   [y/Y] Return to Couriers Menu Options.
-                                                [n/N] Return to Main Menu Options.    ''')
 
-        if user_choose_where_to_go_input in ['y','Y']:
-            Continue
-        else:
+        running = stay_at_courier_menu_or_go_main()
+        if not(running):
+            os.system('cls')
             break
-    
+        else:
+            continue
 
     elif courier_menu_input == '4':
 
         os.system('cls')
         delete_courier()
 
-        user_choose_where_to_go_input = input('''         
-                                        Enter   [y/Y] Return to Couriers Menu Options.
-                                                [n/N] Return to Main Menu Options.    ''')
-
-        if user_choose_where_to_go_input in ['y','Y']:
-            Continue
-        else:
+        running = stay_at_courier_menu_or_go_main()
+        if not(running):
+            os.system('cls')
             break
+        else:
+            continue
  
     else:
         print('''\n Invalid Input, Try Again.''')
@@ -256,7 +245,7 @@ def display_courier_menu():
 
 
 
-def save_files():
+def save_file():
 
     try:
 

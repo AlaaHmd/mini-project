@@ -1,2 +1,2 @@
 customer_name,customer_address,customer_phone,courier_index,status,items
-bob,"23, yell ways",092345,1,Preparing,"['1', '4']"
+Harry,"34, Highway street",34098877,1,Delivered,"['3', '4']"

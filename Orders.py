@@ -19,7 +19,6 @@ class Orders:
         self.items = items
         
         
-        
     def add_order_to_file(self):
 
         try:
@@ -86,19 +85,6 @@ def print_orders_dictionary_with_indeces():
         print(f' The following exception occured :{bad_erro}')
 
 
-def add_order_to_csv(order):
-
-    order_list = []
-    order_list = print_orders_dictionary_with_indeces()
-    order_list.append(order)
-    write_orders_file(order_list)
-
-    os.system('cls')
-    print('A new order has been added...')
-    time.sleep(3)
-
-
-
 
 def write_orders_file(Orders_list):
 
@@ -113,58 +99,55 @@ def write_orders_file(Orders_list):
 
 
     
-def delete_courier_and_order (courier_index):
+def delete_order ():
 
-    order_list = []
+    os.system('cls')
+    print('Orders List:\n')
+    list_of_orders = print_orders_dictionary_with_indeces()
+    order_index_to_delet = int(input ('\nEnter the order\'s index you like to delete: '))
+    order_object = list_of_orders[order_index_to_delet]
+    list_of_orders.pop(order_index_to_delet)
+    write_orders_file(list_of_orders)
+    os.system('cls')
+    print(f'The following order has been deleted:\n {order_object}')
+    time.sleep(3)
 
-    try:
 
-        with open('orders.csv', 'r', newline= '') as file_stream:
-            csv_file_content = csv.DictReader(file_stream)
-            number_of_deleted_orders = 0
+def order_status_list():
+
+    order_status_list = ['Preparing','Waiting For Deliver','Out For Delivery','Delivered']
+    print('\n     Order Status List       \n')
+
+    for index in range(len(order_status_list)):
+
+        print(f'Order status index: {index},',order_status_list[index])
+
+    return order_status_list
+  
+
+def Update_order_status( ):  
+
+         
+    orders_list=  print_orders_dictionary_with_indeces()
+    order_index_to_update_status = int(input ('Which order would you like to Update its status? '))
+
+    order_list_status = order_status_list()
+
+    user_input_new_status = int(input(f'\nEnter the index for the new order\'s status:  '))
             
-            for row in csv_file_content:
+    order_to_update =  orders_list[order_index_to_update_status]
+
+    for index in range(len(order_list_status)):
+
+        if  index == user_input_new_status:
+
+            order_to_update['status'] = order_list_status[index]
         
-                if row.get('courier_index') == courier_index:
-                    del row
-                    number_of_deleted_orders += 1
-                else:
-                    order_list.append(row)
-            print(number_of_deleted_orders,'orders has/have been Successfuly Deleted')
-            time.sleep(3)
-        write_orders_file(order_list)
-
-    except FileNotFoundError as no_file:
-        print(f'The following error occured :{no_file}')
-
-
-
-
-def order_status_options():
-    order_status_list = '''
-            These are the available statuses:
-
-            [0] Preparing
-            [1] Waiting For Deliver
-            [2] Out For Delivery
-            [3] Delivered
-                            ''' 
-    print(order_status_list)
-
-
-
-def Update_order_status(user_input_new_status, order ):  
-
-    if user_input_new_status == '0':
-        order['status'] = 'Preparing'
-    if user_input_new_status == '1':
-        order['status'] = 'Waiting For Deliver'
-    elif user_input_new_status == '2':
-        order['status'] = 'Out For Delivery'
-    elif user_input_new_status == '3':
-        order['status'] = 'Out For Delivery'
-
-    return order
+    
+    write_orders_file(orders_list)
+    os.system('cls')
+    print('The order\'s status has been updated..')
+    return order_to_update
 
 
         
@@ -173,9 +156,6 @@ def update_order():
     list_of_orders = print_orders_dictionary_with_indeces()
     index_of_order_update = int(input ('\nWhich order would you like to Update? '))
     order =  list_of_orders[index_of_order_update]
-
-
-    status = order['status']
 
     for key, value in order.items():
     
@@ -191,22 +171,14 @@ def update_order():
                 order['courier_index'] = int(user_input_courier_index)
 
         elif key == 'status':
-            order_status_options()
-            user_input_new_status = input('What status you like the order to have?  ')
+            order_statust_list = order_status_list()
+            user_input_new_status = int(input('\nEnter the index of the new status you want:  '))
 
-            if not(user_input_new_status):
+            if user_input_new_status in [0,len(order_statust_list)-1]:
+                order['status']  = order_statust_list[user_input_new_status] 
+
+            else:   
                 pass
-
-            else:
-
-                if user_input_new_status == '0':
-                    status = 'Preparing!'           
-                elif user_input_new_status == '1':
-                    status = 'Waiting For Deliver'
-                elif user_input_new_status == '2':
-                    status = 'Out For Delivery'
-                elif user_input_new_status == '3':
-                    status = 'Delivered'
 
         elif key == 'customer_name':
             customer_new_name = input('Please, enter the new name for the customer: ')
@@ -241,8 +213,7 @@ def update_order():
                 pass
             else:
                 order['items'] = items_input.split(',')
-
-    order['status']  = status  
+ 
     list_of_orders[index_of_order_update] = order
     write_orders_file(list_of_orders)
 
@@ -250,8 +221,49 @@ def update_order():
     print('                                  Order has successfully updated\n\n')
     time.sleep(3)
 
-
     return order
+
+
+
+
+def stay_at_Orders_or_go_main():
+    
+    running = 1
+    user_choose_where_to_go_input = input('''         
+            Enter [y/Y] Return to Order Menu Options.
+                  [n/N] Return to Main Menu Options.  ''')
+
+    if user_choose_where_to_go_input in ['y', 'Y']:
+        os.system('cls')
+        return running
+                    
+    elif user_choose_where_to_go_input in ['n', 'N']:
+        os.system('cls')
+        running = 0
+        return running
+
+
+
+def create_new_order():
+
+    user_input_customer_name =input('Enter the customer name: ')
+    user_input_customer_address = input('Enter the customer address: ')
+    user_input_customer_phone = input('Enter the customer number: ')
+    os.system('cls')
+    print('\nChoose a courier index from the following couriers list:\n')
+    Couriers.print_couriers_list_with_indeces()
+
+    user_input_courier_index =input('\nThe courier\'s index is: ')
+    Products.print_products_list_with_indeces()
+    customers_items = input('\nEnter the customer\'s items seperated by comma: ')
+
+    items_list = customers_items.split(',')
+    new_order = Orders(str(user_input_customer_name), str(user_input_customer_address), str(user_input_customer_phone), int(user_input_courier_index), status= 'Preparing', items=items_list)
+    new_order.add_order_to_file()
+
+
+
+
 
 
 
@@ -274,6 +286,7 @@ def display_orders_menu():
         order_user_input1 = input('Please, choose one from the above choices:') 
 
         if order_user_input1 == '0':
+            os.system('cls')
             break
 
         elif order_user_input1 == '1':
@@ -281,130 +294,61 @@ def display_orders_menu():
             print_orders_dictionary_with_indeces()
             time.sleep(3)
 
-            user_choose_where_to_go_input = input('''         
-            Enter [y/Y] Return to Order Menu Options.
-                  [n/N] Return to Main Menu Options.  ''')
-            if user_choose_where_to_go_input in ['y', 'Y']:
-                os.system('cls')
-                continue
-            elif user_choose_where_to_go_input in ['n', 'N']:
+            running = stay_at_Orders_or_go_main()
+            if not(running):
                 os.system('cls')
                 break
             else:
-                print('Invalid input, we\'ll redirect you to the Main Menu Options.')
-                time.sleep(2)
-                os.system('cls')
+                continue
 
         elif order_user_input1 == '2':
             os.system('cls')
-            user_input_customer_name =input('Enter the customer name: ')
-            user_input_customer_address = input('Enter the customer address: ')
-            user_input_customer_phone = input('Enter the customer number: ')
-            os.system('cls')
-            print('\nChoose a courier index from the following couriers list:\n')
-            Couriers.print_couriers_list_with_indeces()
-
-            user_input_courier_index =input('The courier\'s index is: ')
-            Products.print_products_list_with_indeces()
-            customers_items = input('Enter the customer\'s items seperated by comma: ')
-
-            items_list = customers_items.split(',')
-
-            new_order = Orders(str(user_input_customer_name), str(user_input_customer_address), str(user_input_customer_phone), int(user_input_courier_index), status= 'Preparing', items=items_list)
-            new_order.add_order_to_file()
-            user_choose_where_to_go_input = input('''         
-            Enter [y/Y] Return to Order Menu Options.
-                  [n/N] Return to Main Menu Options.  ''')
-
-            if user_choose_where_to_go_input in ['y', 'Y']:
-                os.system('cls')
-                continue
-            elif user_choose_where_to_go_input in ['n', 'N']:
+            create_new_order()
+            running = stay_at_Orders_or_go_main()
+            if not(running):
                 os.system('cls')
                 break
             else:
-                print('Invalid input, we\'ll redirect you to the Main Menu Options.')
-                time.sleep(2)
-                os.system('cls')
+                continue
         elif order_user_input1 == '3':
+
             os.system('cls')
-            print('Orders List with Indeces:\n')
-            print_orders_dictionary_with_indeces()
-
-            order_user_input_update_status = input ('Which order would you like to Update? ')
-
-            order_status_options()
-            user_input_new_status = input(f'What status would order {order_user_input_update_status} to have?  ')
-            
-            orders_list = print_orders_dictionary_with_indeces()
-            order_to_update =  orders_list[int(order_user_input_update_status)]
-
-            if  user_input_new_status == '0':
-                order_to_update['status'] = 'Preparing' 
-            if user_input_new_status == '1':
-                order_to_update['status'] = 'Waiting For Deliver'
-            elif user_input_new_status == '2':
-                order_to_update['status'] = 'Out For Delivery'
-            elif user_input_new_status == '3':
-                order_to_update['status'] = 'Delivered'
-            
-            write_orders_file(orders_list)
-            os.system('cls')
-            print(f'order {order_user_input_update_status} status has been Updated..')
+            Update_order_status()
             time.sleep(3)
-            
-            user_choose_where_to_go_input = input('''         
-            Enter [y/Y] Return to Order Menu Options.
-                  [n/N] Return to Main Menu Options.  ''')
-            if user_choose_where_to_go_input in ['y', 'Y']:
-                os.system('cls')
-                continue
-            elif user_choose_where_to_go_input in ['n', 'N']:
+  
+            running = stay_at_Orders_or_go_main()
+            if not(running):
                 os.system('cls')
                 break
             else:
-                print('Invalid input, we\'ll redirect you to the Main Menu Options.')
-                time.sleep(2)
-                os.system('cls')
+                continue
 
         elif order_user_input1 == '4':
+
             os.system('cls')
             update_order()
-            user_choose_where_to_go_input = input('''         
-            Enter [y/Y] Return to Order Menu Options.
-                  [n/N] Return to Main Menu Options.  ''')
-            if user_choose_where_to_go_input in ['y', 'Y']:
-                continue
-            elif user_choose_where_to_go_input in ['n', 'N']:
+
+            running = stay_at_Orders_or_go_main()
+            if not(running):
+                os.system('cls')
                 break
             else:
-                print('Invalid input, we\'ll redirect you to the Main Menu Options.')
-                time.sleep(2)
-                os.system('cls')
+                continue
 
         elif order_user_input1 == '5':
 
-            os.system('cls')
-            print('Orders List with Indeces:\n')
-            list_of_orders = print_orders_dictionary_with_indeces()
-            courier_index_to_delet = input ('Which courier index would you like to delete? ')
-
-            delete_courier_and_order(courier_index_to_delet )
+            delete_order( )
             os.system('cls')
             
-            user_choose_where_to_go_input = input('''         
-            Enter [y/Y] Return to Order Menu Options.
-                  [n/N] Return to Main Menu Options.  ''')
-            if user_choose_where_to_go_input in ['y', 'Y']:
-                os.system('cls')
-                continue
-                    
-            elif user_choose_where_to_go_input in ['n', 'N']:
+            running = stay_at_Orders_or_go_main()
+            if not(running):
                 os.system('cls')
                 break
-        
             else:
-                    print('Invalid input, we\'ll redirect you to the Main Menu Options.')
-                    time.sleep(2)
-                    os.system('cls')
+                continue
+
+        else:
+            print('Invalid input, we\'ll redirect you to the Main Menu Options.')
+            time.sleep(2)
+            os.system('cls')
         

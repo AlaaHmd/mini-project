@@ -72,19 +72,6 @@ def print_products_list_with_indeces():
 
 
 
-def add_oproduct_to_csv(product):
-
-    products_list = print_products_list_with_indeces()
-    products_list.append(product)
-    write_products_to_csvfile(products_list)
-
-    os.system('cls')
-    print('A new product has been added...')
-    time.sleep(3)
-
-
-
-
 def write_products_to_csvfile(products_list):
 
     with open('products.csv', 'w', newline= '') as file_data:
@@ -130,46 +117,36 @@ def update_product():
 
 
 
+def delete_product ():
 
+    products_list = print_products_list_with_indeces()
+    product_index_to_delete= int(input('Enter the index of the product that you want to delete : '))
 
-def delete_product (product_index):
+    product_object = products_list[product_index_to_delete]
+    products_list.pop(product_index_to_delete)
+    write_products_to_csvfile(products_list)
 
-    products_list = []
-
-    try:
-
-        with open('products.csv', 'r', newline= '') as file_stream:
-            csv_file_content = csv.DictReader(file_stream)
-            number_of_deleted_products = 0
-            
-            for row_index , product_dict in enumerate(csv_file_content):
-
-                if product_index == row_index:
-
-                    del product_dict
-                    number_of_deleted_products +=1
-                else:
-                    products_list.append(product_dict)
-            print(number_of_deleted_products,'products has/have been Successfuly Deleted')
-            time.sleep(3)
-
-        write_products_to_csvfile(products_list)
-
-    except FileNotFoundError as no_file:
-
-        print(f'The following error occured :{no_file}')
+    os.system('cls')
+    print(f'{product_object} has been deleted')
+    time.sleep(3)
 
 
 
-def save_file():
+def stay_at_products_menu_or_go_main():
+    
+    running = 1
+    user_choose_where_to_go_input = input('''         
+            Enter [y/Y] Return to Products Menu Options.
+                  [n/N] Return to Main Menu Options.  ''')
 
-    try:
-
-        file_content = open('products.csv' , 'a')
-        file_content.close() 
-
-    except FileNotFoundError as bad_file:
-        print(f'The following error occured when trying to open the file: {bad_file}')
+    if user_choose_where_to_go_input in ['y', 'Y']:
+        os.system('cls')
+        return running
+                    
+    elif user_choose_where_to_go_input in ['n', 'N']:
+        os.system('cls')
+        running = 0
+        return running
 
 
 
@@ -190,53 +167,74 @@ def  display_product_menu():
             
             Please enter your choice:     '''
  
+    while True:
 
-    user_inptu2= input(products_menu_options)
+        user_inptu2= input(products_menu_options)
 
-    if user_inptu2 == '0':
+        if user_inptu2 == '0':
             
-        os.system('cls')
-        pass   
+            os.system('cls')
+            break   
                     
-    elif user_inptu2 == '1':
+        elif user_inptu2 == '1':
 
-        os.system('cls')
-        print_products_list_with_indeces()
+            os.system('cls')
+            print_products_list_with_indeces()
+
+            running = stay_at_products_menu_or_go_main()
+            if not(running):
+                os.system('cls')
+                break
+            else:
+                continue       
         
-        
-    elif user_inptu2 == '2':
+        elif user_inptu2 == '2':
 
-        os.system('cls')
-        update_product
-        new_product_name = input('Enter The Product Name: ')
-        new_product_price = float(input('Enter the product price: '))
-        product_object = Products(new_product_name,new_product_price)
-        product_object.add_product_to_file()
+            os.system('cls')
 
+            new_product_name = input('Enter The Product Name: ')
+            new_product_price = float(input('Enter the product price: '))
+            product_object = Products(new_product_name,new_product_price)
+            product_object.add_product_to_file()
+
+            running = stay_at_products_menu_or_go_main()
+            if not(running):
+                os.system('cls')
+                break
+            else:
+                continue 
      
-    elif user_inptu2 == '3':
+        elif user_inptu2 == '3':
 
-        os.system('cls')
-
-        update_product()
+            os.system('cls')
+            update_product()
         
-        
+            running = stay_at_products_menu_or_go_main()
+            if not(running):
+                os.system('cls')
+                break
+            else:
+                continue         
 
-    elif user_inptu2 == '4':
+        elif user_inptu2 == '4':
 
-        os.system('cls')
-        print_products_list_with_indeces()
-        product_index_to_delete= int(input('Enter the index of the product that you want to delete : '))
-        delete_product(product_index_to_delete)
+            os.system('cls')
+            delete_product()
     
+            running = stay_at_products_menu_or_go_main()
+            if not(running):
+                os.system('cls')
+                break
+            else:
+                continue 
 
-    else:
-        print(' Invalid Input, Try Again. ')
+        else:
+            print(' Invalid Input, Try Again. ')
 
 
 
 
-def save_files():
+def save_file():
 
     try:
 
