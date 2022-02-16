@@ -1,6 +1,33 @@
+import pymysql
+import os
+from dotenv import load_dotenv
 import csv
 import os
 import time
+
+
+
+def connect_to_db():
+# Load environment variables from .env file
+    load_dotenv()
+    host = os.environ.get("mysql_host")
+    user = os.environ.get("mysql_user")
+    password = os.environ.get("mysql_pass")
+    database = os.environ.get("mysql_db")
+
+# Establish a database connection
+
+    connection = pymysql.connect(
+    host=host,
+    user=user,
+    password=password,
+    database=database
+)
+
+    return connection
+
+
+
 
 class Products:
 
@@ -11,235 +38,182 @@ class Products:
       
         
 
-    def add_product_to_file(self):
-        header = ['name','price']
-        try:
-            if (os.stat("products.csv").st_size == 0):
-
-                with open('products.csv', 'w', newline= '') as file_data:
-                    
-                    writer = csv.DictWriter(file_data,fieldnames= header )
-                    writer.writeheader()
-                    writer.writerow( {  'name' : self.name,
-                    'price' : self.price   })
+    def add_product_to_db(self):
+        connection = connect_to_db()
+        cursor = connection.cursor()
+        cursor.execute("INSERT INTO Products (name, price) values (%s,%s)", (self.name,self.price))
+        connection.commit()
+        os.system('cls')
+        print('A new products has been added...')
+        time.sleep(3) 
 
 
-            else:
-                with open('products.csv', 'a+', newline= '') as file_stream:
-                    writer = csv.DictWriter(file_stream,fieldnames= header )
-                    
-                    writer.writerow( {  'name' : self.name,
-                    'price' : self.price   })
+class Couriers:
 
-            os.system('cls')
-            print('A new order has been added...')
-            time.sleep(3) 
+    def __init__(self, name : str, phone : str):
 
-        except FileNotFoundError as err:
-            print(f'The following exception has araised: {err}')
+        self.name = name
+        self.phone = phone
+      
+        
+
+    def add_new_courier_to_db(self):
 
 
 
+        connection = connect_to_db()
+        cursor = connection.cursor()
+        cursor.execute("INSERT INTO Couriers (name, phone) values (%s,%s)", (self.name,self.phone))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        os.system('cls')
+        print('A new courier has been added...')
+        time.sleep(3) 
 
-def print_products_list_with_indeces():
 
-    products_list = []
+
+    
+        # connection = connect_to_db()
+        # new_query_to_add_courier= f'''INSERT INTO Couriers (name, phone) values ("{self.name}","{self.phone}")'''
+        
+        # commit_query(connection, new_query_to_add_courier)
+
+        # #cursor.execute("INSERT INTO Products (name, price) values (%s,%s)", (self.name,self.price))
+        # #connection.commit()
+        # os.system('cls')
+        # print('A new courier has been added...')
+        # time.sleep(3) 
+
+
+
+
+def select_query(connection_object, query):
+
+    cursor = connection_object.cursor()
+
+    try:
+        cursor.execute(query)
+
+        rows = cursor.fetchall()
+
+    except Exception:
+        print('Error in reading the database.')
+ 
+    return rows
+
+
+
+def write_Products_db_to_csvfile(table_name):
+
+    connection_object = connect_to_db()
+    cursor = connection_object.cursor()
+
+    query = "SELECT * FROM "+ table_name
+    cursor.execute(query)
+
+    header = [row[0] for row in cursor.description]
+
+    rows = cursor.fetchall()
+
+
     try:
 
-        with open('products.csv', 'r', newline= '') as file_stream:
-     
-            csv_file_content = csv.DictReader(file_stream)
-            header = csv_file_content.fieldnames
-
-            if  (os.stat("products.csv").st_size == 0):
-                print ('No products.....')
-                time.sleep(3)
-
-            else:
-                print('***  The Products list:   ***\n'.center(60))    
-                index = 0
-     
-                for row in csv_file_content:
-                    print(f'Product index : {index}', row )
-                    index += 1
-                    products_list.append(row)
-       
-        #print(products_list)
-        return products_list
-
-    except FileNotFoundError as bad_erro:
-        print(f' The following exception occured :{bad_erro}')
-
-
-
-def write_products_to_csvfile(products_list):
-
-    with open('products.csv', 'w', newline= '') as file_data:
-        header = ['name','price']
-        writer = csv.DictWriter(file_data, fieldnames= header)
-        writer.writeheader()
-
-        for product in products_list:
-            writer.writerow(product)
-
-
-
-def update_product():
-
-    products_list = print_products_list_with_indeces()
-    updated_product_index= int(input('\nEnter the index of the product that you want to update : '))
-    product_object = products_list[updated_product_index]
-
-    new_name_for_product = input('Enter the new name of the product: ')
-    new_product_price = float(input('\nEnter the new price for the product: '))
-
-    if not(new_name_for_product):
-       pass
-
-    else:
-
-        product_object['name'] = new_name_for_product
+        with open (table_name + '.csv', 'w', newline= '') as file_data:
             
-    if not(new_product_price):
-        pass
-                
-    else:
+            writer = csv.DictWriter(file_data, fieldnames= header )
+            writer.writeheader()
 
-        product_object['price'] = new_product_price
+            for index ,items in enumerate(rows) :
+               #for num, item in enumerate(items):
+                writer.writerow((','.join(str(r) for r in items) ))
+                    
 
-    products_list[updated_product_index] = product_object
-    write_products_to_csvfile(products_list)
-
-    os.system('cls')
-    print('                                            Successfully  Updated\n\n')
-    time.sleep(3)
+ #f.write(','.join(str(r) for r in row) + '\n')
+    except Exception as err:
+        print('err')
 
 
+def commit_query(connection_object, query):
 
+    cursor = connection_object.cursor()
 
-def delete_product ():
+    try:
 
-    products_list = print_products_list_with_indeces()
-    product_index_to_delete= int(input('Enter the index of the product that you want to delete : '))
+        cursor.execute(query)
+        connection_object.commit()
 
-    product_object = products_list[product_index_to_delete]
-    products_list.pop(product_index_to_delete)
-    write_products_to_csvfile(products_list)
-
-    os.system('cls')
-    print(f'{product_object} has been deleted')
-    time.sleep(3)
+    except Exception as ex:
+        print('Error')
+  
 
 
 
-def stay_at_products_menu_or_go_main():
+def stay_at_menu_or_go_main(choice_name):
     
     running = 1
-    user_choose_where_to_go_input = input('''         
+
+    if (choice_name =='Products'):
+        user_choose_where_to_go_input = input('''         
     Enter [Y/y] Return to Products Menu Options.
           [N/n] Return to Main Menu Options.  ''')
 
-    if user_choose_where_to_go_input in ['y', 'Y']:
-        os.system('cls')
-        return running
+        if user_choose_where_to_go_input in ['y', 'Y']:
+            os.system('cls')
+            return running
                     
-    elif user_choose_where_to_go_input in ['n', 'N']:
-        os.system('cls')
-        running = 0
-        return running
-
-
-
-def  display_product_menu():
-    os.system('cls')
-
-    products_menu_options='''                                         _______________________________________
-                                        |                                       |
-                                        |         Products Menu Options         |
-                                        |_______________________________________|
-                                         
-            
-            [ 0 ]  Main Menu
-            [ 1 ]  Products List
-            [ 2 ]  Create New Product
-            [ 3 ]  Update Exsiting Product
-            [ 4 ]  Delete Product   
-            
-            Please enter your choice:     '''
- 
-    while True:
-
-        user_inptu2= input(products_menu_options)
-
-        if user_inptu2 == '0':
-            
+        elif user_choose_where_to_go_input in ['n', 'N']:
             os.system('cls')
-            break   
+            running = 0
+            return running
+
+    elif (choice_name =='Couriers'):
+
+        user_choose_where_to_go_input = input('''         
+    Enter [Y/y] Return to Courier Menu Options.
+          [N/n] Return to Main Menu Options.  ''')
+
+        if user_choose_where_to_go_input in ['y', 'Y']:
+            os.system('cls')
+            return running
                     
-        elif user_inptu2 == '1':
-
+        elif user_choose_where_to_go_input in ['n', 'N']:
             os.system('cls')
-            print_products_list_with_indeces()
+            running = 0
+            return running
 
-            running = stay_at_products_menu_or_go_main()
-            if not(running):
-                os.system('cls')
-                break
-            else:
-                continue       
-        
-        elif user_inptu2 == '2':
 
-            os.system('cls')
 
-            new_product_name = input('Enter The Product Name: ')
-            new_product_price = float(input('Enter the product price: '))
-            product_object = Products(new_product_name,new_product_price)
-            product_object.add_product_to_file()
 
-            running = stay_at_products_menu_or_go_main()
-            if not(running):
-                os.system('cls')
-                break
-            else:
-                continue 
-     
-        elif user_inptu2 == '3':
+def print_list(list_object):
 
-            os.system('cls')
-            update_product()
-        
-            running = stay_at_products_menu_or_go_main()
-            if not(running):
-                os.system('cls')
-                break
-            else:
-                continue         
+    for item in list_object:
 
-        elif user_inptu2 == '4':
+        print(item)
 
-            os.system('cls')
-            delete_product()
+
+
+
+def db_to_list (rows, table_name):
+
     
-            running = stay_at_products_menu_or_go_main()
-            if not(running):
-                os.system('cls')
-                break
-            else:
-                continue 
+    if table_name == 'Products':
+        products_list = []
+        for row in rows:
+            products_list.append({'id' :row[0], 'name': row[1], 'price': float(row[2])})
+        return products_list
 
-        else:
-            print(' Invalid Input, Try Again. ')
+    elif table_name == 'Couriers':
+        couriers_list = []
+        for row in rows:
+            couriers_list.append({'id' :row[0], 'name': row[1], 'phone': row[2]})
+        return couriers_list
+ 
 
 
 
+def close_db(connection):
 
-def save_file():
+    (connection.cursor()).close()
+    connection.close()
 
-    try:
-
-        file_content = open('products.csv' , 'a') 
-        file_content.close() 
-
-    except FileNotFoundError as bad_file:
-        print(f'Can\'t read couriers.csv. {bad_file} has occured.')

@@ -1,5 +1,9 @@
-import csv
+import pymysql
 import os
+from dotenv import load_dotenv
+import time
+import Couriers
+import csv
 import time
 
 class Couriers:
@@ -49,7 +53,6 @@ class Couriers:
         os.system('cls')
         print('A new courier has been added...')
         time.sleep(3) 
-
 
 
 
@@ -163,84 +166,84 @@ def stay_at_courier_menu_or_go_main():
 
 
 
-def display_courier_menu():
+# def display_courier_menu():
 
- while True: 
+#  while True: 
 
-    os.system('cls')
+#     os.system('cls')
 
-    courier_menu_input= input('''                                     Couriers Menu Options 
+#     courier_menu_input= input('''                                     Couriers Menu Options 
             
-        [ 0 ]  Main Menu
-        [ 1 ]  Couriers List
-        [ 2 ]  Create New Courier
-        [ 3 ]  Update Exsiting Courier
-        [ 4 ]  Delete Courier   ''')
+#         [ 0 ]  Main Menu
+#         [ 1 ]  Couriers List
+#         [ 2 ]  Create New Courier
+#         [ 3 ]  Update Exsiting Courier
+#         [ 4 ]  Delete Courier   ''')
 
    
 
 
-    if courier_menu_input == '0':
+#     if courier_menu_input == '0':
 
-        os.system('cls')
-        break
+#         os.system('cls')
+#         break
 
         
             
-    elif courier_menu_input == '1':
+#     elif courier_menu_input == '1':
 
-        os.system('cls')
-        print_couriers_list_with_indeces()
+#         os.system('cls')
+#         print_couriers_list_with_indeces()
 
-        running = stay_at_courier_menu_or_go_main()
-        if not(running):
-            os.system('cls')
-            break
-        else:
-            continue
+#         running = stay_at_courier_menu_or_go_main()
+#         if not(running):
+#             os.system('cls')
+#             break
+#         else:
+#             continue
 
-    elif courier_menu_input == '2':
+#     elif courier_menu_input == '2':
 
-        os.system('cls')
-        new_courier_name = input('Enter the courier Name : ')
-        new_courier_phone = input('Enter the courier phone:')
-        courier_object = Couriers(new_courier_name,new_courier_phone)
-        courier_object.add_courier_to_file()
+#         os.system('cls')
+#         new_courier_name = input('Enter the courier Name : ')
+#         new_courier_phone = input('Enter the courier phone:')
+#         courier_object = Couriers(new_courier_name,new_courier_phone)
+#         courier_object.add_courier_to_file()
 
-        running = stay_at_courier_menu_or_go_main()
-        if not(running):
-            os.system('cls')
-            break
-        else:
-            continue
+#         running = stay_at_courier_menu_or_go_main()
+#         if not(running):
+#             os.system('cls')
+#             break
+#         else:
+#             continue
 
-    elif courier_menu_input == '3':
+#     elif courier_menu_input == '3':
 
-        os.system('cls')
+#         os.system('cls')
 
-        update_courier()
+#         update_courier()
 
-        running = stay_at_courier_menu_or_go_main()
-        if not(running):
-            os.system('cls')
-            break
-        else:
-            continue
+#         running = stay_at_courier_menu_or_go_main()
+#         if not(running):
+#             os.system('cls')
+#             break
+#         else:
+#             continue
 
-    elif courier_menu_input == '4':
+#     elif courier_menu_input == '4':
 
-        os.system('cls')
-        delete_courier()
+#         os.system('cls')
+#         delete_courier()
 
-        running = stay_at_courier_menu_or_go_main()
-        if not(running):
-            os.system('cls')
-            break
-        else:
-            continue
+#         running = stay_at_courier_menu_or_go_main()
+#         if not(running):
+#             os.system('cls')
+#             break
+#         else:
+#             continue
  
-    else:
-        print('''\n Invalid Input, Try Again.''')
+#     else:
+#         print('''\n Invalid Input, Try Again.''')
 
 
 

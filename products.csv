@@ -1,7 +1,1 @@
-name,price
-Latte,2.1
-Jasmin tea,1.85
-Moch,2.1
-Hot chocolate,2.1
-Cortado,1.85
-Milkshake,2.5
+id,name,price
