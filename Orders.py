@@ -1,8 +1,5 @@
 import csv
-from operator import index
-from typing import List
-from unicodedata import numeric
-import Couriers
+from tkinter import NUMERIC
 import os
 import time
 import Cafe_parts
@@ -170,8 +167,14 @@ def update_order():
     
         if key == 'courier_index':
             print('\nCouriers list:\n')
-            Couriers.print_couriers_list_with_indeces()
-            user_input_courier_index = input('\nEnter the index for the new courier: ')
+            connection = Cafe_parts.connect_to_db()
+            query = ''' Select * from Couriers       '''
+            db_row = Cafe_parts.select_query(connection, query)
+            couriers_list = Cafe_parts.db_to_list(db_row, 'Couriers')
+            os.system('cls')
+            print('Couriers List:')
+            Cafe_parts.print_list(couriers_list)
+            user_input_courier_index = input('\nEnter the id of the courier: ')
 
             if not(user_input_courier_index):
                 pass
@@ -183,7 +186,7 @@ def update_order():
             order_statust_list = order_status_list()
             user_input_new_status = input('\nEnter the index of the new status you want:  ')
 
-            if user_input_new_status is not numeric or user_input_new_status is None:
+            if user_input_new_status is not NUMERIC or user_input_new_status is None:
                 pass
             elif int(user_input_new_status) in [0,len(order_statust_list)-1]:
                 order['status']  = order_statust_list[int(user_input_new_status)] 
@@ -216,8 +219,11 @@ def update_order():
                 order['customer_phone'] = customer_phone
 
         elif key =='items':
-          
-            Cafe_parts.print_products_list_with_indeces()
+            os.system('cls')
+            connection = Cafe_parts.connect_to_db()
+            db_rows = Cafe_parts.select_query(connection,"SELECT * FROM Products")
+            product_list = Cafe_parts.db_to_list(db_rows, 'Products')
+            print('Products List: ')
             items_input = input('\nEnter the indecse of the items seperated by comma : ')
             
             if not(items_input):
@@ -262,15 +268,24 @@ def create_new_order():
     user_input_customer_phone = input('Enter the customer number: ')
     os.system('cls')
     print('\nChoose a courier index from the following couriers list:\n')
-    Couriers.print_couriers_list_with_indeces()
-
+    connection = Cafe_parts.connect_to_db()
+    query = ''' Select * from Couriers       '''
+    db_row = Cafe_parts.select_query(connection, query)
+    couriers_list = Cafe_parts.db_to_list(db_row, 'Couriers')
+    Cafe_parts.print_list(couriers_list)
     user_input_courier_index =input('\nThe courier\'s index is: ')
-    Cafe_parts.print_products_list_with_indeces()
+
+    query = ''' Select * from Products       '''
+    db_row = Cafe_parts.select_query(connection, query)
+    products_list = Cafe_parts.db_to_list(db_row, 'Products')
+    Cafe_parts.print_list(products_list)
     customers_items = input('\nEnter the customer\'s items seperated by comma: ')
 
     items_list = customers_items.split(',')
     new_order = Orders(str(user_input_customer_name), str(user_input_customer_address), str(user_input_customer_phone), int(user_input_courier_index), status= 'Preparing', items=items_list)
     new_order.add_order_to_file()
+
+
 
 
 
@@ -314,7 +329,8 @@ def display_orders_menu():
         [3] Update Order Status
         [4] Update Existing Order
         [5] Delete order
-        [6] List Orders by Status.
+        [6] List Orders by Status
+        [7] csv to DB
                      '''
 
     while True :   
@@ -399,6 +415,11 @@ def display_orders_menu():
                 break
             else:
                 continue
+        
+        elif order_user_input1 == '7':
+            Cafe_parts.convert_csv_db('Orders')
+
+
         
 
         else:

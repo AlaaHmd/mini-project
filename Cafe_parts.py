@@ -45,16 +45,16 @@ class Products:
         cursor.execute("INSERT INTO Products (name, price) values (%s,%s)", (self.name,self.price))
         connection.commit()
 
-        # cursor.execute("SELECT id from Products where name =(%s) and price = (%s)", (self.name,self.price))
-        # row = cursor.fetchall()
-        # product_id =0
+        cursor.execute("SELECT id from Products where name =(%s) and price = (%s)", (self.name,self.price))
+        header = [columns[0] for columns in cursor.description]
+        row = cursor.fetchall()
+        product_dict = dict(zip(header, row))
+        product_id = product_dict.get('id')
+        stock_quantity = float(input('Please enter the stock quantity for this product: '))
 
-        # for index, item in enumerate(row):
-        #     product_id = int(item[index][0])
+        cursor.execute("INSERT INTO Product_Inventory (product_id, Unit_Price, Stock_Quantity, Inventory_Value) values (%s, %s, %s, %s)", (product_id ,self.price,stock_quantity, self.price*stock_quantity))
+        connection.commit()
 
-        # cursor.execute("INSERT INTO Product_Inventory (product_id, create_date) values (%s,%s)", (product_id),date.today())
-        # connection.commit()
-        
         os.system('cls')
         print('A new products has been added...')
         time.sleep(3) 
@@ -197,6 +197,67 @@ def db_to_list (rows, table_name):
             couriers_list.append({'id' :row[0], 'name': row[1], 'phone': row[2]})
         return couriers_list
  
+
+def get_product_inventory():
+
+    connection_object = connect_to_db()
+    query = '''SELECT Products.id, Products.name, Stock_Quantity, Unit_Price, Inventory_Value 
+    from Product_Inventory
+    inner join Products
+    on Products.id = Product_Inventory.product_id       '''
+
+    db_rows = select_query(connection_object, query)
+
+    inventory_list = []
+    for row in db_rows:
+            inventory_list.append({'Product id' :row[0], 'Product name': row[1],
+             'Product Stock_Quantity': float(row[2]), 'Product unit price': float(row[3]),
+             
+             'Product Inventory Value': float(row[4])
+             })
+    return inventory_list
+
+
+
+def convert_csv_db(file_name):
+
+    connection = connect_to_db()
+    cursor = connection.cursor()
+
+    try:
+
+        with open (file_name +'.csv', 'r', newline='' ) as file_content:
+            data = csv.reader(file_content)
+            header = next(data)
+         
+        #IF FILE_NAME == Products
+        #if_file name = couriers
+
+            for row in data:
+                cursor.execute(
+        "INSERT INTO Orders (customer_name, customer_address, customer_phone, courier_id, status, items) VALUES ( %s, %s, %s,%s,%s, %s)", row)
+                connection.commit()
+                
+  
+
+
+    except FileNotFoundError as err:
+        print('Can\'t open the file')
+
+
+def commit_query(connection_object, query):
+
+    cursor = connection_object.cursor()
+
+    try:
+
+        cursor.execute(query)
+        connection_object.commit()
+
+    except Exception as ex:
+        print('Error')
+  
+
 
 
 

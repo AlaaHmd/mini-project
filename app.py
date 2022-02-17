@@ -22,6 +22,7 @@ def  display_product_menu():
             [ 3 ]  Update Exsiting Product
             [ 4 ]  Delete Product 
             [ 5 ]  Export Products table to CSV file.
+            [ 6 ]  Products Inventory.
             
             Please enter your choice:     '''
  
@@ -62,6 +63,7 @@ def  display_product_menu():
             product_object = Cafe_parts.Products(new_product_name,new_product_price)
 
             product_object.add_product_to_db()
+           # Cafe_parts.disply_product_inventory()
 
             running = Cafe_parts.stay_at_menu_or_go_main('Products')
             if not(running):
@@ -149,6 +151,20 @@ def  display_product_menu():
             Cafe_parts.write_db_to_csvfile('Products')
             os.system('cls')
             print('Products table has been exported to Products.csv')
+            time.sleep(2)
+    
+            running = Cafe_parts.stay_at_menu_or_go_main('Products')
+            if not(running):
+                os.system('cls')
+                break
+            else:
+                continue 
+
+        elif user_inptu2 == '6': 
+            os.system('cls')
+            inventory_list =  Cafe_parts.get_product_inventory()
+            print('Products Inventory: ')
+            Cafe_parts.print_list(inventory_list)
             time.sleep(2)
     
             running = Cafe_parts.stay_at_menu_or_go_main('Products')
@@ -354,5 +370,6 @@ def main():
             display_courier_menu( )
         elif user_input == '3':
             Orders.display_orders_menu()
+    
 
 main()
