@@ -5,7 +5,7 @@ from unicodedata import numeric
 import Couriers
 import os
 import time
-import Products
+import Cafe_parts
 
 class Orders:
 
@@ -217,7 +217,7 @@ def update_order():
 
         elif key =='items':
           
-            Products.print_products_list_with_indeces()
+            Cafe_parts.print_products_list_with_indeces()
             items_input = input('\nEnter the indecse of the items seperated by comma : ')
             
             if not(items_input):
@@ -265,7 +265,7 @@ def create_new_order():
     Couriers.print_couriers_list_with_indeces()
 
     user_input_courier_index =input('\nThe courier\'s index is: ')
-    Products.print_products_list_with_indeces()
+    Cafe_parts.print_products_list_with_indeces()
     customers_items = input('\nEnter the customer\'s items seperated by comma: ')
 
     items_list = customers_items.split(',')

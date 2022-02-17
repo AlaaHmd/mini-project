@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import csv
 import os
+from datetime import date
 import time
 
 
@@ -43,6 +44,17 @@ class Products:
         cursor = connection.cursor()
         cursor.execute("INSERT INTO Products (name, price) values (%s,%s)", (self.name,self.price))
         connection.commit()
+
+        # cursor.execute("SELECT id from Products where name =(%s) and price = (%s)", (self.name,self.price))
+        # row = cursor.fetchall()
+        # product_id =0
+
+        # for index, item in enumerate(row):
+        #     product_id = int(item[index][0])
+
+        # cursor.execute("INSERT INTO Product_Inventory (product_id, create_date) values (%s,%s)", (product_id),date.today())
+        # connection.commit()
+        
         os.system('cls')
         print('A new products has been added...')
         time.sleep(3) 
@@ -59,8 +71,6 @@ class Couriers:
 
     def add_new_courier_to_db(self):
 
-
-
         connection = connect_to_db()
         cursor = connection.cursor()
         cursor.execute("INSERT INTO Couriers (name, phone) values (%s,%s)", (self.name,self.phone))
@@ -70,22 +80,6 @@ class Couriers:
         os.system('cls')
         print('A new courier has been added...')
         time.sleep(3) 
-
-
-
-    
-        # connection = connect_to_db()
-        # new_query_to_add_courier= f'''INSERT INTO Couriers (name, phone) values ("{self.name}","{self.phone}")'''
-        
-        # commit_query(connection, new_query_to_add_courier)
-
-        # #cursor.execute("INSERT INTO Products (name, price) values (%s,%s)", (self.name,self.price))
-        # #connection.commit()
-        # os.system('cls')
-        # print('A new courier has been added...')
-        # time.sleep(3) 
-
-
 
 
 def select_query(connection_object, query):
@@ -104,18 +98,15 @@ def select_query(connection_object, query):
 
 
 
-def write_Products_db_to_csvfile(table_name):
+def write_db_to_csvfile(table_name):
 
     connection_object = connect_to_db()
     cursor = connection_object.cursor()
-
     query = "SELECT * FROM "+ table_name
     cursor.execute(query)
 
-    header = [row[0] for row in cursor.description]
-
+    header = [columns[0] for columns in cursor.description]
     rows = cursor.fetchall()
-
 
     try:
 
@@ -124,14 +115,12 @@ def write_Products_db_to_csvfile(table_name):
             writer = csv.DictWriter(file_data, fieldnames= header )
             writer.writeheader()
 
-            for index ,items in enumerate(rows) :
-               #for num, item in enumerate(items):
-                writer.writerow((','.join(str(r) for r in items) ))
-                    
+            for row in rows:
+                writer.writerow(dict(zip(header, row)))
 
- #f.write(','.join(str(r) for r in row) + '\n')
     except Exception as err:
         print('err')
+
 
 
 def commit_query(connection_object, query):
@@ -146,7 +135,6 @@ def commit_query(connection_object, query):
     except Exception as ex:
         print('Error')
   
-
 
 
 def stay_at_menu_or_go_main(choice_name):
