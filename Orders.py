@@ -224,6 +224,7 @@ def update_order():
             db_rows = Cafe_parts.select_query(connection,"SELECT * FROM Products")
             product_list = Cafe_parts.db_to_list(db_rows, 'Products')
             print('Products List: ')
+            Cafe_parts.print_list(product_list)
             items_input = input('\nEnter the indecse of the items seperated by comma : ')
             
             if not(items_input):
@@ -306,12 +307,12 @@ def list_orders_grouping_by_status ():
                 counter += 1
         
         if counter !=0:
-            print(f'\n ** {status}  status **, {counter} orders: ')
+            print(f'\n {status} status : {counter} orders')
             for index in range(len(order_list_grouped_by_status)):
-                print(f'{index+1}- {order_list_grouped_by_status[index]}')    
+                print(f'   {index+1}- {order_list_grouped_by_status[index]}')    
         
         else:
-            print(f'\n ** {status} " status ** :\n No orders.')  
+            print(f'\n  {status} status : NO ORDERS')  
 
         order_list_grouped_by_status.clear()
 

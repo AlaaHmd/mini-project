@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 import time
 import Orders
 import Cafe_parts
-#import Couriers
 
 
 def  display_product_menu():
@@ -61,9 +60,7 @@ def  display_product_menu():
             new_product_name = input('Enter The Product Name: ')
             new_product_price = float(input('Enter the product price: '))
             product_object = Cafe_parts.Products(new_product_name,new_product_price)
-
             product_object.add_product_to_db()
-           # Cafe_parts.disply_product_inventory()
 
             running = Cafe_parts.stay_at_menu_or_go_main('Products')
             if not(running):
@@ -76,10 +73,9 @@ def  display_product_menu():
 
             os.system('cls')
             connection = Cafe_parts.connect_to_db()
-            cursor = connection.cursor()
-
             select_products_query = 'SELECT * FROM Products'
             products_db_rows = Cafe_parts.select_query(connection , select_products_query)
+            Cafe_parts.close_db(connection)
 
             products_list = Cafe_parts.db_to_list(products_db_rows, 'Products')
             Cafe_parts.print_list(products_list)
@@ -88,26 +84,68 @@ def  display_product_menu():
 
             product_name = input('\nEnter the new name of the product: ')
             new_product_price = input('Enter the new price for the product: ')
+            stock_quantity = input('Enter the stock quantity for the updated product: ')
 
-            
+            if (stock_quantity):
+
+                connection_object2 = Cafe_parts.connect_to_db()
+                price_query_1 = f'''Select * from Product_Inventory where product_id = {updated_product_id}'''
+                product_inventory_rows= Cafe_parts.select_query(connection_object2 , price_query_1)
+                product_inventory_list_1 = Cafe_parts.db_to_list(product_inventory_rows,'Product_Inventory')
+           
+                price = 0
+                for product_dict in product_inventory_list_1:
+                    if (product_dict.get('product_id') == updated_product_id):
+                        price =  float(product_dict.get('Unit_Price'))
+                        break
+
+                stock_quantity_query = f'''update Product_Inventory set Stock_Quantity = {float(stock_quantity)} ,
+                 Inventory_Value = {float(stock_quantity) * price} where product_id = {updated_product_id}'''
+
+                Cafe_parts.commit_query(connection_object2 , stock_quantity_query)
+                Cafe_parts.close_db(connection_object2)
+
+            else:
+                pass
+
+          
             if  not (new_product_price):
                 pass
 
             else:
+                connection_obj1 = Cafe_parts.connect_to_db()
+                update_query_2 = f'''update Products set price = {float(new_product_price)} where id = {updated_product_id}'''
+                Cafe_parts.commit_query(connection_obj1 , update_query_2)
+                Cafe_parts.close_db(connection_obj1)
 
-                update_query_2 = f'''update Products set price = {float(new_product_price)} 
-                where id = {updated_product_id}'''
-                Cafe_parts.commit_query(connection , update_query_2)
+                connection_obj2 = Cafe_parts.connect_to_db()
+                stock_quantity_query_1 = f'''Select * from Product_Inventory where product_id = {updated_product_id}'''
+                data= Cafe_parts.select_query(connection_obj2 , stock_quantity_query_1)
+                inventory_list = Cafe_parts.db_to_list(data, 'Product_Inventory')
+                stock_quantity = 0
+
+                for dict in inventory_list:
+                    if (dict.get('product_id') == updated_product_id):
+                        stock_quantity= dict['Stock_Quantity'] 
+                        break
+              
+                update_query_3 = f'''update Product_Inventory set Unit_Price = {float(new_product_price)},
+                 Inventory_Value = {float(stock_quantity) * float(new_product_price)} where product_id = {updated_product_id}'''
+
+                Cafe_parts.commit_query(connection_obj2 , update_query_3)
+                Cafe_parts.close_db(connection_obj2)
 
                 
             if not (product_name):
                 pass
 
             else:
-
+                connection_obj5 = Cafe_parts.connect_to_db()
                 update_query_1 = f'''update Products set name = "{product_name}" where id = {updated_product_id}'''
-                Cafe_parts.commit_query(connection , update_query_1)
+                Cafe_parts.commit_query(connection_obj5 , update_query_1)
+                Cafe_parts.close_db(connection_obj5)
 
+          
             os.system('cls')
             print('Product has been updated')
             time.sleep(2)
@@ -122,19 +160,25 @@ def  display_product_menu():
 
             os.system('cls')
             connection = Cafe_parts.connect_to_db()
-            cursor = connection.cursor()
-
             select_products_query = 'SELECT * FROM Products'
             products_db_rows = Cafe_parts.select_query(connection , select_products_query)
-
             products_list = Cafe_parts.db_to_list(products_db_rows, 'Products')
+            Cafe_parts.close_db(connection)
+
             print('Product List:\n\n')
             Cafe_parts.print_list(products_list)
-
             user_product_index = int(input('Enter the index of the product to delete it: '))
-            delet_product_query = f"DELETE FROM Products where Products.id = {user_product_index}"
 
-            Cafe_parts.commit_query(connection,delet_product_query )
+            connection_object = Cafe_parts.connect_to_db()
+            delet_product_inventory_query = f"DELETE FROM Product_Inventory where product_id = {user_product_index}"
+            Cafe_parts.commit_query(connection_object,delet_product_inventory_query )
+            Cafe_parts.close_db(connection_object)
+
+            connection_obj = Cafe_parts.connect_to_db()
+            delet_product_query = f"DELETE FROM Products where id = {user_product_index}"
+            Cafe_parts.commit_query(connection_obj,delet_product_query )
+            Cafe_parts.close_db(connection_obj)
+
             os.system('cls')
             print('Product has been deleted')
             time.sleep(2)
@@ -162,7 +206,7 @@ def  display_product_menu():
 
         elif user_inptu2 == '6': 
             os.system('cls')
-            inventory_list =  Cafe_parts.get_product_inventory()
+            inventory_list =  Cafe_parts.show_product_inventory()
             print('Products Inventory: ')
             Cafe_parts.print_list(inventory_list)
             time.sleep(2)
@@ -194,7 +238,9 @@ def display_courier_menu():
         [ 2 ]  Create New Courier
         [ 3 ]  Update Exsiting Courier
         [ 4 ]  Delete Courier  
-        [ 5 ]  Export Couriers table to CSV file.     ''')
+        [ 5 ]  Export Couriers table to CSV file
+
+        Please enter your choice:     ''')
 
    
     if courier_menu_input == '0':

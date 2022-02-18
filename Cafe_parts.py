@@ -196,9 +196,17 @@ def db_to_list (rows, table_name):
         for row in rows:
             couriers_list.append({'id' :row[0], 'name': row[1], 'phone': row[2]})
         return couriers_list
+
+    elif table_name == 'Product_Inventory':
+        product_inventory_list = []
+        for row in rows:
+            product_inventory_list.append({'id' :row[0], 'product_id': row[1], 'Stock_Quantity': float(row[2]), 'Unit_Price': float(row[3]),
+             'Inventory_Value': float(row[4]) })
+        return product_inventory_list
+
  
 
-def get_product_inventory():
+def show_product_inventory():
 
     connection_object = connect_to_db()
     query = '''SELECT Products.id, Products.name, Stock_Quantity, Unit_Price, Inventory_Value 
@@ -249,14 +257,8 @@ def commit_query(connection_object, query):
 
     cursor = connection_object.cursor()
 
-    try:
-
-        cursor.execute(query)
-        connection_object.commit()
-
-    except Exception as ex:
-        print('Error')
-  
+    cursor.execute(query)
+    connection_object.commit()
 
 
 
