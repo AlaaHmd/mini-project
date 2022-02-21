@@ -1,324 +1,255 @@
 import csv
-from tkinter import NUMERIC
 import os
 import time
-import Cafe_parts
+import methods
 
 class Orders:
 
     def __init__(self, customer_name : str, customer_address : str, 
-    customer_phone : str, courier_index : int, status : str, items):
+    customer_phone : str, courier_id : int, status_id : int, items):
 
         self.customer_name = customer_name
         self.customer_address = customer_address
         self.customer_phone = customer_phone
-        self.courier_index = courier_index
-        self.status = status
+        self.courier_id = courier_id
+        self.status_id = status_id
         self.items = items
         
         
-    def add_order_to_file(self):
+    def add_order_to_db(self):
 
-        try:
+        connection = methods.connect_to_db()
+        cursor = connection.cursor()
+        cursor.execute('''INSERT INTO Orders (customer_name,customer_address,
+                customer_phone, courier_id, status_id) values (%s,%s,%s,%s,%s)''', (self.customer_name,
+                self.customer_address, self.customer_phone, self.courier_id, self.status_id))
 
-            with open('orders.csv', 'a+', newline= '') as file_data:
-                header = ['customer_name','customer_address',
-                'customer_phone', 'courier_index', 'status', 'items']
-                writer = csv.DictWriter(file_data,fieldnames= header )
-                # If the file is empty, write the header first then appen the new order.
-                if (os.stat("orders.csv").st_size == 0):
+        connection.commit( )
+        cursor.close()
+        connection.close()
 
-                    writer.writeheader()
-                    writer.writerow( {  'customer_name' : self.customer_name,
-                    'customer_address' : self.customer_address,
-                    'customer_phone': self.customer_phone,
-                    'courier_index' : self.courier_index,
-                    'status' : self.status ,
-                    'items': self.items  })
+        id_query = '''SELECT MAX(order_id) FROM Orders'''
+        connection_obj2 = methods.connect_to_db()
+        rows = methods.select_query(connection_obj2, id_query         )
+        methods.close_db(connection_obj2)
 
-
-                else:
-
-                    writer.writerow( {  'customer_name' : self.customer_name,
-                'customer_address' : self.customer_address,
-                'customer_phone': self.customer_phone,
-                'courier_index' : self.courier_index,
-                'status' : self.status,
-                'items': self.items    }) 
-            os.system('cls')
-            print('A new order has been added...')
-            time.sleep(3) 
-
-        except FileNotFoundError as err:
-            print(f'The following exception has araised: {err}')
+        id = 1
+        for row in rows:
+            id =int(row[0])
 
 
+        for index in range(len(self.items)):
+            connection_obj = methods.connect_to_db()
+            cursor = connection_obj.cursor()
+            cursor.execute(''' insert into Products_On_Orders (order_id, product_id) values(%s,%s)''',(id, int(self.items[index])))
+            connection_obj.commit( )
+            cursor.close()
+            connection_obj.close()
 
 
-def get_orders_list():
-
-    order_list = []
-    try:
-
-        with open('orders.csv', 'r', newline= '') as file_stream:
-
-            csv_file_content = csv.DictReader(file_stream)
-            header = csv_file_content.fieldnames
-
-            for row in csv_file_content:
-
-                order_list.append(row)
-       
-        return order_list
-
-    except FileNotFoundError as bad_erro:
-        print(f' The following exception occured :{bad_erro}')
-
-
-
-def display_order_list(order_list):
-
-    index = 0
-    for row in order_list:
-        print(f'Order index: {index}',row)
-        index += 1
- 
-
-
-
-
-def write_orders_file(Orders_list):
-
-    with open('orders.csv', 'w', newline= '') as file_data:
-        header = ['customer_name','customer_address','customer_phone', 'courier_index', 'status', 'items']
-        writer = csv.DictWriter(file_data, fieldnames= header)
-        writer.writeheader()
-
-        for order in Orders_list:
-            writer.writerow(order)
-
-
-
-    
-def delete_order ():
-
-    os.system('cls')
-    print('Orders List:\n')
-    list_of_orders = get_orders_list()
-    display_order_list(list_of_orders)
-    order_index_to_delet = int(input ('\nEnter the order\'s index you like to delete: '))
-    order_object = list_of_orders[order_index_to_delet]
-    list_of_orders.pop(order_index_to_delet)
-    write_orders_file(list_of_orders)
-    os.system('cls')
-    print(f'The following order has been deleted:\n {order_object}')
-    time.sleep(3)
-
-
-
-def order_status_list():
-
-    order_status_list = ['Preparing','Waiting For Deliver','Out For Delivery','Delivered']
-    print('\n     Order Status List       \n')
-
-    for index in range(len(order_status_list)):
-
-        print(f'Order status index: {index},',order_status_list[index])
-
-    return order_status_list
-  
-
+        os.system('cls')
+        print('A new order has been added...')
+        time.sleep(3) 
 
 
 def Update_order_status( ):  
          
-    orders_list=  get_orders_list()
-    display_order_list(orders_list)
-    order_index_to_update_status = int(input ('Which order would you like to Update its status? '))
+    os.system('cls')
+    connection_object = methods.connect_to_db()
+    select_orders_query = 'SELECT * FROM Orders'
+    orders_db_rows = methods.select_query(connection_object , select_orders_query)
+    methods.close_db(connection_object)
 
-    order_list_status = order_status_list()
+    orders_list = methods.db_to_list(orders_db_rows, 'Orders')
+    os.system('cls')
+    print('Orders List')
+    methods.print_list(orders_list)
 
-    user_input_new_status = int(input(f'\nEnter the index for the new order\'s status:  '))
-            
-    order_to_update =  orders_list[order_index_to_update_status]
-
-    for index in range(len(order_list_status)):
-
-        if  index == user_input_new_status:
-
-            order_to_update['status'] = order_list_status[index]
-        
+    updated_order_id= int(input('\nEnter the id of the order that you want to update its status : '))
     
-    write_orders_file(orders_list)
+
+    connection_1 = methods.connect_to_db()
+    status_query_1 = f'''Select * from Order_Status '''
+    order_status_rows= methods.select_query(connection_1 , status_query_1)
+    order_status_list = methods.db_to_list(order_status_rows,'Order_Status')
+    methods.close_db(connection_1)  
+    os.system('cls')
+    print('Order status: ')
+    methods.print_list(order_status_list)
+
+    new_status_id = input('\nEnter the id of the new status :  ') 
+     
+
+    connection_3 = methods.connect_to_db()
+    update_status_query_2 = f'''update Orders set status_id = "{int(new_status_id)}" where order_id = {updated_order_id}'''
+    methods.commit_query(connection_3 , update_status_query_2)
+    methods.close_db(connection_3)
+
     os.system('cls')
     print('The order\'s status has been updated..')
-    return order_to_update
+    time.sleep(2)
+ 
 
 
         
 def update_order():
 
-    list_of_orders = get_orders_list()
-    display_order_list(list_of_orders)
-    index_of_order_update = int(input ('\nWhich order would you like to Update? '))
-    order =  list_of_orders[index_of_order_update]
+    os.system('cls')
+    connection_object = methods.connect_to_db()
+    select_orders_query = 'SELECT * FROM Orders'
+    orders_db_rows = methods.select_query(connection_object , select_orders_query)
+    methods.close_db(connection_object)
 
-    for key, value in order.items():
+    orders_list = methods.db_to_list(orders_db_rows, 'Orders')
+    os.system('cls')
+    print('Orders List')
+    methods.print_list(orders_list)
+
+
+    updated_order_id= int(input('\nEnter the id of the order that you want to update : '))
+    customer_name = input('\n Enter the new name for the customer: ')
+    customer_address = input('Enter the new customer address: ')
+    customer_phone= input('Enter the new customer phone: ')
+    os.system('cls')
+
+    connection_new_obj = methods.connect_to_db()
+    db_content = methods.select_query(connection_new_obj,"SELECT * FROM Order_Status")
+    methods.close_db(connection_new_obj)
+    order_status_list = methods.db_to_list(db_content, 'Order_Status')
+    os.system('cls')
+    print('Order status: ')
+    methods.print_list(order_status_list)
+    user_input_new_status = input('\nEnter the id of the new status :  ')
+   
+    connection_obj = methods.connect_to_db()
+    db_rows = methods.select_query(connection_obj,"SELECT * FROM Products")
+    methods.close_db(connection_obj)
+    product_list = methods.db_to_list(db_rows, 'Products')
+    os.system('cls')
+    print('Products List: ')
+    methods.print_list(product_list)
+    items_input = input('\nEnter the id\'s of the products seperated by comma : ')
+
+    connection_3 = methods.connect_to_db()
+    query = ''' Select * from Couriers       '''
+    db_row = methods.select_query(connection_3, query)
+    couriers_list = methods.db_to_list(db_row, 'Couriers')
+    os.system('cls')
+    print('Couriers List:')
+    methods.print_list(couriers_list)
+    courier_id = input('\nEnter the id of the courier: ')
+   
+
+    if not(user_input_new_status ):
+        pass
+    else:
+
+        connection_2 = methods.connect_to_db()
+        update_status_query = f'''update Orders set status_id = "{int(user_input_new_status)}" where order_id = {updated_order_id}'''
+        methods.commit_query(connection_2 , update_status_query)
+        methods.close_db(connection_2)
+
+    if not(items_input):
+        pass
+    else:
+        list_of_product_for_order = items_input.split(',')
+
+        for index in range(len(list_of_product_for_order)):
+            connection_2 = methods.connect_to_db()
+            update_items_of_order_query = f'''update Products_On_Orders set product_id = {int(list_of_product_for_order[index])} where order_id = {updated_order_id}'''
+            methods.commit_query(connection_2 , update_items_of_order_query)
+            methods.close_db(connection_2)
+
+    if not(courier_id):
+        pass
+    else:
     
-        if key == 'courier_index':
-            print('\nCouriers list:\n')
-            connection = Cafe_parts.connect_to_db()
-            query = ''' Select * from Couriers       '''
-            db_row = Cafe_parts.select_query(connection, query)
-            couriers_list = Cafe_parts.db_to_list(db_row, 'Couriers')
-            os.system('cls')
-            print('Couriers List:')
-            Cafe_parts.print_list(couriers_list)
-            user_input_courier_index = input('\nEnter the id of the courier: ')
+        connection_4 = methods.connect_to_db()
+        update_courier_id_query = f'''update Orders set courier_id = {int(courier_id)} where order_id = {updated_order_id}'''
+        methods.commit_query(connection_4 , update_courier_id_query)
+        methods.close_db(connection_4)
 
-            if not(user_input_courier_index):
-                pass
-            else:
 
-                order['courier_index'] = int(user_input_courier_index)
 
-        elif key == 'status':
-            order_statust_list = order_status_list()
-            user_input_new_status = input('\nEnter the index of the new status you want:  ')
+    if not(customer_name):
+        pass
+    else:
+    
+        connection_5 = methods.connect_to_db()
+        update_customer_name_query = f'''update Orders set customer_name = "{customer_name}" where order_id = {updated_order_id}'''
+        methods.commit_query(connection_5 , update_customer_name_query)
+        methods.close_db(connection_5)
 
-            if user_input_new_status is not NUMERIC or user_input_new_status is None:
-                pass
-            elif int(user_input_new_status) in [0,len(order_statust_list)-1]:
-                order['status']  = order_statust_list[int(user_input_new_status)] 
 
-            else:   
-                pass
+    
+    if not(customer_address):
+        pass
+    else:
+    
+        connection_6 = methods.connect_to_db()
+        update_customer_address_query = f'''update Orders set customer_address = "{customer_address}" where order_id = {updated_order_id}'''
+        methods.commit_query(connection_6 , update_customer_address_query)
+        methods.close_db(connection_6)
 
-        elif key == 'customer_name':
-            customer_new_name = input('Please, enter the new name for the customer: ')
 
-            if not(customer_new_name):
-                pass
-            else:
-                order['customer_name'] = customer_new_name
 
-        elif key == 'customer_address':
-            customer_new_address = input('Please, enter the new customer address: ')
-
-            if not(customer_new_address):
-                pass
-            else:
-                order['customer_address'] = customer_new_address
-
-        elif key == 'customer_phone':
-            customer_phone = input('Please, enter the new customer phone: ')
-
-            if not(customer_phone):
-                pass
-            else:
-                order['customer_phone'] = customer_phone
-
-        elif key =='items':
-            os.system('cls')
-            connection = Cafe_parts.connect_to_db()
-            db_rows = Cafe_parts.select_query(connection,"SELECT * FROM Products")
-            product_list = Cafe_parts.db_to_list(db_rows, 'Products')
-            print('Products List: ')
-            Cafe_parts.print_list(product_list)
-            items_input = input('\nEnter the indecse of the items seperated by comma : ')
-            
-            if not(items_input):
-                pass
-            else:
-                order['items'] = items_input.split(',')
- 
-    list_of_orders[index_of_order_update] = order
-    write_orders_file(list_of_orders)
+    if not(customer_phone):
+        pass
+    else:
+    
+        connection_7 = methods.connect_to_db()
+        update_customer_phone_query = f'''update Orders set customer_phone = "{customer_phone}" where order_id = {updated_order_id}'''
+        methods.commit_query(connection_7 , update_customer_phone_query)
+        methods.close_db(connection_7)
 
     os.system('cls')
     print('                                  Order has successfully updated\n\n')
     time.sleep(3)
 
-    return order
-
-
-
-
-def stay_at_Orders_or_go_main():
-    
-    running = 1
-    user_choose_where_to_go_input = input('''         
-    Enter [Y/y] Return to Order Menu Options.
-          [N/n] Return to Main Menu Options.  ''')
-
-    if user_choose_where_to_go_input in ['y', 'Y']:
-        os.system('cls')
-        return running
-                    
-    elif user_choose_where_to_go_input in ['n', 'N']:
-        os.system('cls')
-        running = 0
-        return running
-
-
-
-def create_new_order():
-
-    user_input_customer_name =input('Enter the customer name: ')
-    user_input_customer_address = input('Enter the customer address: ')
-    user_input_customer_phone = input('Enter the customer number: ')
-    os.system('cls')
-    print('\nChoose a courier index from the following couriers list:\n')
-    connection = Cafe_parts.connect_to_db()
-    query = ''' Select * from Couriers       '''
-    db_row = Cafe_parts.select_query(connection, query)
-    couriers_list = Cafe_parts.db_to_list(db_row, 'Couriers')
-    Cafe_parts.print_list(couriers_list)
-    user_input_courier_index =input('\nThe courier\'s index is: ')
-
-    query = ''' Select * from Products       '''
-    db_row = Cafe_parts.select_query(connection, query)
-    products_list = Cafe_parts.db_to_list(db_row, 'Products')
-    Cafe_parts.print_list(products_list)
-    customers_items = input('\nEnter the customer\'s items seperated by comma: ')
-
-    items_list = customers_items.split(',')
-    new_order = Orders(str(user_input_customer_name), str(user_input_customer_address), str(user_input_customer_phone), int(user_input_courier_index), status= 'Preparing', items=items_list)
-    new_order.add_order_to_file()
-
-
-
-
 
 def list_orders_grouping_by_status ():
 
-    orders_list = get_orders_list()
-    order_list_status = order_status_list()
+    connection_object = methods.connect_to_db()
+    query = '''SELECT Order_Status.status, count(Orders.order_id) from Orders
+                 right JOIN  Order_Status on Order_Status.id = Orders.status_id 
+                Group by Order_Status.status
+       '''
+    db_rows = methods.select_query(connection_object, query)
 
-    order_list_grouped_by_status = []
-    os.system('cls')
-    print('\nGrouping orders by status:')
-    for status in order_list_status:
-           
-        counter = 0
-        for order in orders_list:
-            if(status == order.get('status')):
-                order_list_grouped_by_status.append(order)
-                counter += 1
-        
-        if counter !=0:
-            print(f'\n {status} status : {counter} orders')
-            for index in range(len(order_list_grouped_by_status)):
-                print(f'   {index+1}- {order_list_grouped_by_status[index]}')    
-        
-        else:
-            print(f'\n  {status} status : NO ORDERS')  
-
-        order_list_grouped_by_status.clear()
-
+    print('Orders grouping by status:\n')
+    for row in db_rows:
+        print(f'{row[0]} status \\ {row[1]} orders')
     
 
 
+
+def print_orders():
+
+    os.system('cls')
+    connection = methods.connect_to_db()
+    orders_query = '''SELECT Orders.order_id,Products_On_Orders.product_id,
+    Orders.customer_name, Orders.customer_address, 
+    Orders.customer_phone, Orders.courier_id, Order_Status.status
+    from Orders
+    left JOIN Products_On_Orders on Products_On_Orders.order_id = Orders.order_id
+    left join Order_Status on Order_Status.id = Orders.status_id
+   
+       '''
+    db_rows = methods.select_query(connection, orders_query)
+
+    print('Orders List:\n')
+    for row in db_rows:
+        print(f'order_id: {row[0]}, product_id: {row[1]} , {row[2]} , {row[3]} , {row[4]} , {row[5]}, {row[6]}')
+    
+    time.sleep(2)
+  
+
+
+
+
+
+
+########################################################
 
 def display_orders_menu():
     os.system('cls')
@@ -331,7 +262,8 @@ def display_orders_menu():
         [4] Update Existing Order
         [5] Delete order
         [6] List Orders by Status
-        [7] csv to DB
+        [7] Export DB to CSV
+        [8] Import CSV to DB
                      '''
 
     while True :   
@@ -345,24 +277,52 @@ def display_orders_menu():
             break
 
         elif order_user_input1 == '1':
-            os.system('cls')
-            print('***  The Orders list:   ***\n'.center(100)) 
-            order_list = get_orders_list()
-            display_order_list(order_list)
+            # connection = methods.connect_to_db()
+            # select_orders_query = 'SELECT * FROM Orders'
+            # orders_db_rows = methods.select_query(connection , select_orders_query)
 
-            time.sleep(3)
+            # orders_list = methods.db_to_list(orders_db_rows, 'Orders')
+            # os.system('cls')
+            print('Orders list:\n')           
+            print_orders()
 
-            running = stay_at_Orders_or_go_main()
+            running = methods.stay_at_menu_or_go_main('Orders')
             if not(running):
                 os.system('cls')
                 break
             else:
-                continue
+                continue       
 
         elif order_user_input1 == '2':
             os.system('cls')
-            create_new_order()
-            running = stay_at_Orders_or_go_main()
+            user_input_customer_name =input('Enter the customer name: ')
+            user_input_customer_address = input('Enter the customer address: ')
+            user_input_customer_phone = input('Enter the customer number: ')
+            os.system('cls')
+            print('\nChoose a courier index from the following couriers list:\n')
+            connection = methods.connect_to_db()
+            query = ''' Select * from Couriers       '''
+            db_row = methods.select_query(connection, query)
+            couriers_list = methods.db_to_list(db_row, 'Couriers')
+            os.system('cls')
+            print('Couriers List: ')
+            methods.print_list(couriers_list)
+            user_input_courier_index =input('\nThe courier\'s index is: ')
+
+            query = ''' Select * from Products       '''
+            db_row = methods.select_query(connection, query)
+            products_list = methods.db_to_list(db_row, 'Products')
+            os.system('cls')
+            print('Products List: ')
+            methods.print_list(products_list)
+            customers_items = input('\nEnter the customer\'s items seperated by comma: ')
+
+            items_list = customers_items.split(',')
+            new_order = Orders(str(user_input_customer_name), str(user_input_customer_address), str(user_input_customer_phone),
+             int(user_input_courier_index), 1 , items_list)
+            new_order.add_order_to_db()
+
+            running = methods.stay_at_menu_or_go_main('Orders')
             if not(running):
                 os.system('cls')
                 break
@@ -374,7 +334,7 @@ def display_orders_menu():
             Update_order_status()
             time.sleep(3)
   
-            running = stay_at_Orders_or_go_main()
+            running = methods.stay_at_menu_or_go_main('Orders')
             if not(running):
                 os.system('cls')
                 break
@@ -386,7 +346,7 @@ def display_orders_menu():
             os.system('cls')
             update_order()
 
-            running = stay_at_Orders_or_go_main()
+            running = methods.stay_at_menu_or_go_main('Orders')
             if not(running):
                 os.system('cls')
                 break
@@ -395,10 +355,32 @@ def display_orders_menu():
 
         elif order_user_input1 == '5':
 
-            delete_order( )
             os.system('cls')
-            
-            running = stay_at_Orders_or_go_main()
+            connection = methods.connect_to_db()
+            select_orders_query = 'SELECT * FROM Orders'
+            orders_db_rows = methods.select_query(connection , select_orders_query)
+            orders_list = methods.db_to_list(orders_db_rows, 'Orders')
+            methods.close_db(connection)
+
+            print('Orders List:\n\n')
+            methods.print_list(orders_list)
+            user_order_id= int(input('Enter the order id to delete it: '))
+
+            connection_object = methods.connect_to_db()
+            delet_order_in_Products_On_Orders = f''' DELETE FROM Products_On_Orders where order_id ={user_order_id} '''
+            methods.commit_query(connection_object,delet_order_in_Products_On_Orders )
+            methods.close_db(connection_object)
+
+            connection_obj = methods.connect_to_db()
+            delet_query = f"DELETE FROM Orders where order_id = {user_order_id}"
+            methods.commit_query(connection_obj,delet_query )
+            methods.close_db(connection_obj)
+
+            os.system('cls')
+            print('Order has been deleted')
+            time.sleep(2)  
+           
+            running = methods.stay_at_menu_or_go_main('Orders')
             if not(running):
                 os.system('cls')
                 break
@@ -410,18 +392,33 @@ def display_orders_menu():
             list_orders_grouping_by_status()
             time.sleep(3)
 
-            running = stay_at_Orders_or_go_main()
+            running = methods.stay_at_menu_or_go_main('Orders')
             if not(running):
                 os.system('cls')
                 break
             else:
                 continue
         
+        elif order_user_input1 == '8':
+            methods.convert_csv_db('Orders')
+
+            running = methods.stay_at_menu_or_go_main('Orders')
+            if not(running):
+                os.system('cls')
+                break
+            else:
+                continue
+
         elif order_user_input1 == '7':
-            Cafe_parts.convert_csv_db('Orders')
 
+            methods.write_db_to_csvfile('Orders')
 
-        
+            running = methods.stay_at_menu_or_go_main('Orders')
+            if not(running):
+                os.system('cls')
+                break
+            else:
+                continue
 
         else:
             print('Invalid input, we\'ll redirect you to the Main Menu Options.')
