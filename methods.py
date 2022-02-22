@@ -1,3 +1,4 @@
+from prettytable import PrettyTable
 import pymysql
 import os
 from dotenv import load_dotenv
@@ -131,15 +132,16 @@ def stay_at_menu_or_go_main(choice_name):
 
 def print_list(list_object):
 
-
-    result = '' 
-    key_to_print_string = ' , '.join(key for key in list_object[0].keys())
+    mytable = PrettyTable([key for key in list_object[0].keys()])
+  #  result = '' 
+  #  key_to_print_string = ' , '.join(key for key in list_object[0].keys())
 
     for item in list_object:
-        result += ' , '.join(str(value) for value in item.values())+ '\n'
-
-    print(key_to_print_string)
-    print(result)
+        mytable.add_row([value for value in item.values()])
+     #   result += ' , '.join(str(value) for value in item.values())+ '\n'
+    print(mytable)
+   # print(key_to_print_string)
+   # print(result)
 
 
 ##################################################
@@ -198,9 +200,7 @@ def show_product_inventory():
     for row in db_rows:
             inventory_list.append({'Product id' :row[0], 'Product name': row[1],
              'Product Stock_Quantity': float(row[2]), 'Product unit price': float(row[3]),
-             
-             'Product Inventory Value': float(row[4])
-             })
+              'Product Inventory Value': float(row[4]) })
     return inventory_list
 
 ######################################################

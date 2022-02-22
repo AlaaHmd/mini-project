@@ -2,7 +2,7 @@ import csv
 import os
 import time
 import methods
-
+from prettytable import PrettyTable
 class Orders:
 
     def __init__(self, customer_name : str, customer_address : str, 
@@ -30,7 +30,7 @@ class Orders:
 
         id_query = '''SELECT MAX(order_id) FROM Orders'''
         connection_obj2 = methods.connect_to_db()
-        rows = methods.select_query(connection_obj2, id_query         )
+        rows = methods.select_query(connection_obj2, id_query )
         methods.close_db(connection_obj2)
 
         id = 1
@@ -39,12 +39,31 @@ class Orders:
 
 
         for index in range(len(self.items)):
-            connection_obj = methods.connect_to_db()
-            cursor = connection_obj.cursor()
+            connection_obj_1 = methods.connect_to_db()
+            cursor = connection_obj_1.cursor()
             cursor.execute(''' insert into Products_On_Orders (order_id, product_id) values(%s,%s)''',(id, int(self.items[index])))
-            connection_obj.commit( )
+            connection_obj_1.commit( )
             cursor.close()
-            connection_obj.close()
+            connection_obj_1.close()
+
+            connection_obj2 = methods.connect_to_db()
+            stock_quantity_query = f'''Select Stock_Quantity, Unit_Price from Product_Inventory where product_id = { int(self.items[index])}'''
+            data= methods.select_query(connection_obj2 , stock_quantity_query)
+            methods.close_db(connection_obj2)
+            stock_quantity = 0
+            new_price = 0
+
+            for row in data:
+                stock_quantity = float(row[0])
+                new_price = float(row[1])
+
+            update_connection = methods.connect_to_db()
+            update_query_3 = f'''update Product_Inventory set Stock_Quantity = {float(stock_quantity-1)},
+            Inventory_Value = {float(stock_quantity-1) * float(new_price)} where product_id = {int(self.items[index])}'''
+            methods.commit_query(update_connection , update_query_3)
+            methods.close_db(update_connection)
+
+    
 
 
         os.system('cls')
@@ -216,10 +235,11 @@ def list_orders_grouping_by_status ():
        '''
     db_rows = methods.select_query(connection_object, query)
 
-    print('Orders grouping by status:\n')
+    mytable = PrettyTable(['status', 'count(orders)'])
+    print('Grouping Orders By Status:\n')
     for row in db_rows:
-        print(f'{row[0]} status \\ {row[1]} orders')
-    
+        mytable.add_row(row)
+    print(mytable)
 
 
 
@@ -227,26 +247,78 @@ def print_orders():
 
     os.system('cls')
     connection = methods.connect_to_db()
-    orders_query = '''SELECT Orders.order_id,Products_On_Orders.product_id,
-    Orders.customer_name, Orders.customer_address, 
-    Orders.customer_phone, Orders.courier_id, Order_Status.status
+    orders_query = '''SELECT Orders.order_id,Products_On_Orders.product_id,Products.name,
+     Orders.customer_name, Orders.customer_address, 
+     Orders.customer_phone, Orders.courier_id, Order_Status.status
     from Orders
-    left JOIN Products_On_Orders on Products_On_Orders.order_id = Orders.order_id
     left join Order_Status on Order_Status.id = Orders.status_id
-   
-       '''
+    left JOIN Products_On_Orders on Products_On_Orders.order_id = Orders.order_id
+    left join Products on Products.id = Products_On_Orders.product_id 
+           '''
     db_rows = methods.select_query(connection, orders_query)
-
+    mytable = PrettyTable(['order_id', 'product_id' , 'product_name ', 'customer_name',
+    'customer_address','customer_phone', 'courier_id','status'])
     print('Orders List:\n')
     for row in db_rows:
-        print(f'order_id: {row[0]}, product_id: {row[1]} , {row[2]} , {row[3]} , {row[4]} , {row[5]}, {row[6]}')
-    
+        mytable.add_row(row)
+    print(mytable)
     time.sleep(2)
   
 
 
 
 
+def delete_order():
+
+    print_orders()
+
+    # os.system('cls')
+    # connection = methods.connect_to_db()
+    # select_orders_query = 'SELECT * FROM Orders'
+    # orders_db_rows = methods.select_query(connection , select_orders_query)
+    # orders_list = methods.db_to_list(orders_db_rows, 'Orders')
+    # methods.close_db(connection)
+
+    # print('Orders List:\n\n')
+    # methods.print_list(orders_list)
+
+    order_id= input('Enter the order id to delete it: ')
+
+    connection_object = methods.connect_to_db()
+    product_id_query = f'''Select product_id FROM Products_On_Orders where order_id = {int(order_id)}'''
+    rows = methods.select_query(connection_object, product_id_query )
+    methods.close_db(connection_object)
+
+    # connection_obj_1 = methods.connect_to_db()
+    # delet_order_in_Products_On_Orders = f'''DELETE FROM Products_On_Orders where order_id = {int(order_id)}'''
+    # methods.commit_query(connection_obj_1,delet_order_in_Products_On_Orders )
+    # methods.close_db(connection_obj_1)
+
+    
+    connection_obj = methods.connect_to_db()
+    delet_query = f"DELETE FROM Orders where order_id = {int(order_id)}"
+    methods.commit_query(connection_obj,delet_query )
+    methods.close_db(connection_obj)
+
+
+    for row in rows :
+        product_id = int(row[0])
+
+        connection_obj = methods.connect_to_db()
+        inventory_query = f''' Select Stock_Quantity, Unit_Price from Product_Inventory
+        where Product_Inventory.product_id = {product_id}'''
+        db_rows = methods.select_query(connection_obj, inventory_query)
+
+        for row in db_rows :
+            stock_quantity = float(row[0])
+            price = float(row[1])
+
+            connection_to_db = methods.connect_to_db()
+            update_query = f'''update Product_Inventory set Stock_Quantity = {stock_quantity +1},
+                 Inventory_Value = {(stock_quantity +1) * (price)} where product_id = {product_id}'''
+
+            methods.commit_query(connection_to_db , update_query)
+            methods.close_db(connection_to_db)
 
 
 ########################################################
@@ -277,12 +349,7 @@ def display_orders_menu():
             break
 
         elif order_user_input1 == '1':
-            # connection = methods.connect_to_db()
-            # select_orders_query = 'SELECT * FROM Orders'
-            # orders_db_rows = methods.select_query(connection , select_orders_query)
-
-            # orders_list = methods.db_to_list(orders_db_rows, 'Orders')
-            # os.system('cls')
+            os.system('cls')
             print('Orders list:\n')           
             print_orders()
 
@@ -297,7 +364,7 @@ def display_orders_menu():
             os.system('cls')
             user_input_customer_name =input('Enter the customer name: ')
             user_input_customer_address = input('Enter the customer address: ')
-            user_input_customer_phone = input('Enter the customer number: ')
+            user_input_customer_phone = input('Enter the customer phone: ')
             os.system('cls')
             print('\nChoose a courier index from the following couriers list:\n')
             connection = methods.connect_to_db()
@@ -355,28 +422,29 @@ def display_orders_menu():
 
         elif order_user_input1 == '5':
 
+            # os.system('cls')
+            # connection = methods.connect_to_db()
+            # select_orders_query = 'SELECT * FROM Orders'
+            # orders_db_rows = methods.select_query(connection , select_orders_query)
+            # orders_list = methods.db_to_list(orders_db_rows, 'Orders')
+            # methods.close_db(connection)
+
+            # print('Orders List:\n\n')
+            # methods.print_list(orders_list)
+            # user_order_id= int(input('Enter the order id to delete it: '))
+
+            # connection_object = methods.connect_to_db()
+            # delet_order_in_Products_On_Orders = f''' DELETE FROM Products_On_Orders where order_id ={user_order_id} '''
+            # methods.commit_query(connection_object,delet_order_in_Products_On_Orders )
+            # methods.close_db(connection_object)
+
+            # connection_obj = methods.connect_to_db()
+            # delet_query = f"DELETE FROM Orders where order_id = {user_order_id}"
+            # methods.commit_query(connection_obj,delet_query )
+            # methods.close_db(connection_obj)
+
             os.system('cls')
-            connection = methods.connect_to_db()
-            select_orders_query = 'SELECT * FROM Orders'
-            orders_db_rows = methods.select_query(connection , select_orders_query)
-            orders_list = methods.db_to_list(orders_db_rows, 'Orders')
-            methods.close_db(connection)
-
-            print('Orders List:\n\n')
-            methods.print_list(orders_list)
-            user_order_id= int(input('Enter the order id to delete it: '))
-
-            connection_object = methods.connect_to_db()
-            delet_order_in_Products_On_Orders = f''' DELETE FROM Products_On_Orders where order_id ={user_order_id} '''
-            methods.commit_query(connection_object,delet_order_in_Products_On_Orders )
-            methods.close_db(connection_object)
-
-            connection_obj = methods.connect_to_db()
-            delet_query = f"DELETE FROM Orders where order_id = {user_order_id}"
-            methods.commit_query(connection_obj,delet_query )
-            methods.close_db(connection_obj)
-
-            os.system('cls')
+            delete_order()
             print('Order has been deleted')
             time.sleep(2)  
            

@@ -141,19 +141,37 @@ def display_courier_menu():
         methods.print_list(couriers_list)
 
         courier_id = int(input('Enter the index of the courier to delete it: '))
-        delet_courier_query = f"DELETE FROM Couriers where id = {courier_id}"
 
-        methods.commit_query(connection,delet_courier_query )
-        os.system('cls')
-        print('Courier has been deleted')
-        time.sleep(2)
+        connection_obj = methods.connect_to_db()
+        couriers_in_orders_table_query = f''' SELECT COUNT(*) FROM Orders where courier_id = {courier_id} '''
+        rows = methods.select_query(connection_obj, couriers_in_orders_table_query)
+        methods.close_db(connection_obj)
 
-        running = methods.stay_at_menu_or_go_main('Couriers')
-        if not(running):
-            os.system('cls')
-            break
-        else:
-            continue
+        
+        for row in rows:
+            if row[0] != 0:
+
+                os.system('cls')
+                print('''>>>> Courier is holding an order, can\'t delete it.\n>>>> Try change couriers in Orders Table, then delete this courier!''')
+                time.sleep(2)
+                pass
+                break
+                    
+            else:
+
+                delet_courier_query = f"DELETE FROM Couriers where id = {courier_id}"
+
+                methods.commit_query(connection,delet_courier_query )
+                os.system('cls')
+                print('Courier has been deleted')
+                time.sleep(2)
+
+                running = methods.stay_at_menu_or_go_main('Couriers')
+                if not(running):
+                    os.system('cls')
+                    break
+                else:
+                    continue
     
     elif  courier_menu_input == '5': 
         os.system('cls')

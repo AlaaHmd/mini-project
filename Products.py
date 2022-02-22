@@ -1,4 +1,5 @@
 from types import MethodDescriptorType
+from winreg import QueryValue
 import methods
 import os
 import time
@@ -34,6 +35,78 @@ class Products:
         time.sleep(3) 
 
 
+
+
+
+def update_product(product_id):
+
+
+    product_name = input('\nEnter the new name of the product: ')
+    new_product_price = input('Enter the new price for the product: ')
+    stock_quantity = input('Enter the stock quantity for the updated product: ')
+
+    if (stock_quantity):
+
+        connection_object2 = methods.connect_to_db()
+        price_query_1 = f'''Select * from Product_Inventory where product_id = {product_id}'''
+        product_inventory_rows= methods.select_query(connection_object2 , price_query_1)
+        product_inventory_list_1 = methods.db_to_list(product_inventory_rows,'Product_Inventory')
+           
+        price = 0
+        for product_dict in product_inventory_list_1:
+            if (product_dict.get('product_id') == product_id):
+                price =  float(product_dict.get('Unit_Price'))
+                break
+
+        stock_quantity_query = f'''update Product_Inventory set Stock_Quantity = {float(stock_quantity)} ,
+        Inventory_Value = {float(stock_quantity) * price} where product_id = {product_id}'''
+
+        methods.commit_query(connection_object2 , stock_quantity_query)
+        methods.close_db(connection_object2)
+
+    else:
+        pass
+
+          
+    if  not (new_product_price):
+        pass
+
+    else:
+        connection_obj1 = methods.connect_to_db()
+        update_query_2 = f'''update Products set price = {float(new_product_price)} where id = {product_id}'''
+        methods.commit_query(connection_obj1 , update_query_2)
+        methods.close_db(connection_obj1)
+
+        connection_obj2 = methods.connect_to_db()
+        stock_quantity_query_1 = f'''Select * from Product_Inventory where product_id = {product_id}'''
+        data= methods.select_query(connection_obj2 , stock_quantity_query_1)
+        inventory_list = methods.db_to_list(data, 'Product_Inventory')
+        stock_quantity = 0
+
+        for dict in inventory_list:
+            if (dict.get('product_id') == product_id):
+                stock_quantity= dict['Stock_Quantity'] 
+                break
+              
+        update_query_3 = f'''update Product_Inventory set Unit_Price = {float(new_product_price)},
+        Inventory_Value = {float(stock_quantity) * float(new_product_price)} where product_id = {product_id}'''
+
+        methods.commit_query(connection_obj2 , update_query_3)
+        methods.close_db(connection_obj2)
+
+                
+        if not (product_name):
+            pass
+
+        else:
+            connection_obj5 = methods.connect_to_db()
+            update_query_1 = f'''update Products set name = "{product_name}" where id = {product_id}'''
+            methods.commit_query(connection_obj5 , update_query_1)
+            methods.close_db(connection_obj5)
+
+       
+
+
 ##############################################################
 
 
@@ -59,7 +132,7 @@ def  display_product_menu():
             Please enter your choice:     '''
  
     while True:
-
+        os.system('cls')
         user_inptu2= input(products_menu_options)
 
         if user_inptu2 == '0':
@@ -115,79 +188,57 @@ def  display_product_menu():
 
             updated_product_id= int(input('\nEnter the id of the product that you want to update : '))
 
-            product_name = input('\nEnter the new name of the product: ')
-            new_product_price = input('Enter the new price for the product: ')
-            stock_quantity = input('Enter the stock quantity for the updated product: ')
+            connection_1 = methods.connect_to_db()
+            products_query = f''' SELECT COUNT(*) FROM Products_On_Orders WHERE product_id = {updated_product_id}'''
+            rows = methods.select_query(connection_1, products_query)
+            methods.close_db(connection_1)
 
-            if (stock_quantity):
+            for row in rows:
+                if (row[0] != 0):
+                    os.system('cls')
+                    print('Can\'t update this product, it is on Orders Table.')
+                    user_input = input('''Would you like to delete the orders which 
+                    have this products, then continue updating the product? (y,n)''')
 
-                connection_object2 = methods.connect_to_db()
-                price_query_1 = f'''Select * from Product_Inventory where product_id = {updated_product_id}'''
-                product_inventory_rows= methods.select_query(connection_object2 , price_query_1)
-                product_inventory_list_1 = methods.db_to_list(product_inventory_rows,'Product_Inventory')
-           
-                price = 0
-                for product_dict in product_inventory_list_1:
-                    if (product_dict.get('product_id') == updated_product_id):
-                        price =  float(product_dict.get('Unit_Price'))
+                    if (user_input in ['y','Y']):
+
+                        connection = methods.connect_to_db()
+                        query = f''' Select order_id FROM Products_On_Orders where product_id = {updated_product_id}'''
+                        rows = methods.select_query(connection, query)
+                        methods.close_db(connection)
+                        
+                        for row in rows:
+                            order_id = int(row[0])
+
+                        connection_1 = methods.connect_to_db()
+                        query = f''' DELETE FROM Orders where order_id = {order_id}'''
+                        rows = methods.commit_query(connection_1, query)
+                        methods.close_db(connection_1)
+                        update_product(updated_product_id)
+                        
+                        os.system('cls')
+                        print('Product has been updated')
+                        time.sleep(2)
+                        running = methods.stay_at_menu_or_go_main('Products')
+                        if not(running):
+                            os.system('cls')
+                            break
+                        else:
+                            continue     
+
+                        
+                else:
+                    update_product(updated_product_id)
+
+                    os.system('cls')
+                    print('Product has been updated')
+                    time.sleep(2)
+                    running = methods.stay_at_menu_or_go_main('Products')
+                    if not(running):
+                        os.system('cls')
                         break
-
-                stock_quantity_query = f'''update Product_Inventory set Stock_Quantity = {float(stock_quantity)} ,
-                 Inventory_Value = {float(stock_quantity) * price} where product_id = {updated_product_id}'''
-
-                methods.commit_query(connection_object2 , stock_quantity_query)
-                methods.close_db(connection_object2)
-
-            else:
-                pass
-
-          
-            if  not (new_product_price):
-                pass
-
-            else:
-                connection_obj1 = methods.connect_to_db()
-                update_query_2 = f'''update Products set price = {float(new_product_price)} where id = {updated_product_id}'''
-                methods.commit_query(connection_obj1 , update_query_2)
-                methods.close_db(connection_obj1)
-
-                connection_obj2 = methods.connect_to_db()
-                stock_quantity_query_1 = f'''Select * from Product_Inventory where product_id = {updated_product_id}'''
-                data= methods.select_query(connection_obj2 , stock_quantity_query_1)
-                inventory_list = methods.db_to_list(data, 'Product_Inventory')
-                stock_quantity = 0
-
-                for dict in inventory_list:
-                    if (dict.get('product_id') == updated_product_id):
-                        stock_quantity= dict['Stock_Quantity'] 
-                        break
-              
-                update_query_3 = f'''update Product_Inventory set Unit_Price = {float(new_product_price)},
-                 Inventory_Value = {float(stock_quantity) * float(new_product_price)} where product_id = {updated_product_id}'''
-
-                methods.commit_query(connection_obj2 , update_query_3)
-                methods.close_db(connection_obj2)
-
-                
-            if not (product_name):
-                pass
-
-            else:
-                connection_obj5 = methods.connect_to_db()
-                update_query_1 = f'''update Products set name = "{product_name}" where id = {updated_product_id}'''
-                methods.commit_query(connection_obj5 , update_query_1)
-                methods.close_db(connection_obj5)
-
-          
-            os.system('cls')
-            print('Product has been updated')
-            time.sleep(2)
-            running = methods.stay_at_menu_or_go_main('Products')
-            if not(running):
-                os.system('cls')
-                break
-            else:
-                continue         
+                    else:
+                        continue         
 
         elif user_inptu2 == '4':
 
@@ -200,28 +251,45 @@ def  display_product_menu():
 
             print('Product List:\n\n')
             methods.print_list(products_list)
-            user_product_index = int(input('Enter the index of the product to delete it: '))
+            product_index = int(input('Enter the index of the product to delete it: '))
 
-            connection_object = methods.connect_to_db()
-            delet_product_inventory_query = f"DELETE FROM Product_Inventory where product_id = {user_product_index}"
-            methods.commit_query(connection_object,delet_product_inventory_query )
-            methods.close_db(connection_object)
+            connection_1 = methods.connect_to_db()
+            query = f''' SELECT count(*) FROM Products_On_Orders where product_id = {product_index}'''
+            rows = methods.select_query(connection_1,query )
+            methods.close_db(connection_1)
 
-            connection_obj = methods.connect_to_db()
-            delet_product_query = f"DELETE FROM Products where id = {user_product_index}"
-            methods.commit_query(connection_obj,delet_product_query )
-            methods.close_db(connection_obj)
 
-            os.system('cls')
-            print('Product has been deleted')
-            time.sleep(2)
-    
-            running = methods.stay_at_menu_or_go_main('Products')
-            if not(running):
-                os.system('cls')
-                break
-            else:
-                continue 
+            for row in rows:
+                if row[0] != 0:
+
+                    os.system('cls')
+                    print('''>>Product is on order, can\'t delete it.\n>>> Try delete\\cancel the orders then delete the product. ''')
+                    time.sleep(2)
+                    pass
+                    break
+                    
+                else:
+
+            
+                    connection_object = methods.connect_to_db()
+                    delet_product_inventory_query = f"DELETE FROM Product_Inventory where product_id = {product_index}"
+                    methods.commit_query(connection_object,delet_product_inventory_query )
+                    methods.close_db(connection_object)
+
+                    connection_obj = methods.connect_to_db()
+                    delet_product_query = f"DELETE FROM Products where id = {product_index}"
+                    methods.commit_query(connection_obj,delet_product_query )
+                    methods.close_db(connection_obj)
+
+                    os.system('cls')
+                    print('Product has been deleted')
+                    time.sleep(2)
+                    running = methods.stay_at_menu_or_go_main('Products')
+                    if not(running):
+                        os.system('cls')
+                        break
+                    else:
+                        continue 
 
         elif user_inptu2 == '5': 
             os.system('cls')
