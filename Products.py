@@ -197,8 +197,7 @@ def  display_product_menu():
                 if (row[0] != 0):
                     os.system('cls')
                     print('Can\'t update this product, it is on Orders Table.')
-                    user_input = input('''Would you like to delete the orders which 
-                    have this products, then continue updating the product? (y,n)''')
+                    user_input = input('''Would you like to delete the orders which have this products.\nThen continue updating the product? (y,n)''')
 
                     if (user_input in ['y','Y']):
 
@@ -212,6 +211,7 @@ def  display_product_menu():
 
                         connection_1 = methods.connect_to_db()
                         query = f''' DELETE FROM Orders where order_id = {order_id}'''
+                        #rows = methods.commit_query(connection_1, query)
                         rows = methods.commit_query(connection_1, query)
                         methods.close_db(connection_1)
                         update_product(updated_product_id)

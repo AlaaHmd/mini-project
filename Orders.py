@@ -173,11 +173,20 @@ def update_order():
     else:
         list_of_product_for_order = items_input.split(',')
 
+        connection_to_db = methods.connect_to_db()
+
+        delete_order_query = f'''DELETE FROM Products_On_Orders WHERE order_id = {updated_order_id} '''
+        methods.commit_query(connection_to_db ,delete_order_query)
+        methods.close_db(connection_to_db)
+
         for index in range(len(list_of_product_for_order)):
+
             connection_2 = methods.connect_to_db()
-            update_items_of_order_query = f'''update Products_On_Orders set product_id = {int(list_of_product_for_order[index])} where order_id = {updated_order_id}'''
+            update_items_of_order_query = f'''Insert into Products_On_Orders (order_id, product_id) 
+            values ({updated_order_id} , {int(list_of_product_for_order[index])})'''
             methods.commit_query(connection_2 , update_items_of_order_query)
             methods.close_db(connection_2)
+
 
     if not(courier_id):
         pass
@@ -272,28 +281,12 @@ def delete_order():
 
     print_orders()
 
-    # os.system('cls')
-    # connection = methods.connect_to_db()
-    # select_orders_query = 'SELECT * FROM Orders'
-    # orders_db_rows = methods.select_query(connection , select_orders_query)
-    # orders_list = methods.db_to_list(orders_db_rows, 'Orders')
-    # methods.close_db(connection)
-
-    # print('Orders List:\n\n')
-    # methods.print_list(orders_list)
-
     order_id= input('Enter the order id to delete it: ')
 
     connection_object = methods.connect_to_db()
     product_id_query = f'''Select product_id FROM Products_On_Orders where order_id = {int(order_id)}'''
     rows = methods.select_query(connection_object, product_id_query )
     methods.close_db(connection_object)
-
-    # connection_obj_1 = methods.connect_to_db()
-    # delet_order_in_Products_On_Orders = f'''DELETE FROM Products_On_Orders where order_id = {int(order_id)}'''
-    # methods.commit_query(connection_obj_1,delet_order_in_Products_On_Orders )
-    # methods.close_db(connection_obj_1)
-
     
     connection_obj = methods.connect_to_db()
     delet_query = f"DELETE FROM Orders where order_id = {int(order_id)}"
@@ -334,9 +327,7 @@ def display_orders_menu():
         [4] Update Existing Order
         [5] Delete order
         [6] List Orders by Status
-        [7] Export DB to CSV
-        [8] Import CSV to DB
-                     '''
+        [7] Export DB to CSV  '''
 
     while True :   
         print('Orders Menu Options'.center(100))                 
@@ -422,27 +413,6 @@ def display_orders_menu():
 
         elif order_user_input1 == '5':
 
-            # os.system('cls')
-            # connection = methods.connect_to_db()
-            # select_orders_query = 'SELECT * FROM Orders'
-            # orders_db_rows = methods.select_query(connection , select_orders_query)
-            # orders_list = methods.db_to_list(orders_db_rows, 'Orders')
-            # methods.close_db(connection)
-
-            # print('Orders List:\n\n')
-            # methods.print_list(orders_list)
-            # user_order_id= int(input('Enter the order id to delete it: '))
-
-            # connection_object = methods.connect_to_db()
-            # delet_order_in_Products_On_Orders = f''' DELETE FROM Products_On_Orders where order_id ={user_order_id} '''
-            # methods.commit_query(connection_object,delet_order_in_Products_On_Orders )
-            # methods.close_db(connection_object)
-
-            # connection_obj = methods.connect_to_db()
-            # delet_query = f"DELETE FROM Orders where order_id = {user_order_id}"
-            # methods.commit_query(connection_obj,delet_query )
-            # methods.close_db(connection_obj)
-
             os.system('cls')
             delete_order()
             print('Order has been deleted')
@@ -480,7 +450,7 @@ def display_orders_menu():
         elif order_user_input1 == '7':
 
             methods.write_db_to_csvfile('Orders')
-
+            
             running = methods.stay_at_menu_or_go_main('Orders')
             if not(running):
                 os.system('cls')

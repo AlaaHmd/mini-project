@@ -62,6 +62,8 @@ def write_db_to_csvfile(table_name):
             for row in rows:
                 writer.writerow(dict(zip(header, row)))
 
+        print('CSV file is now available.')
+
     except Exception as err:
         print('err')
 
@@ -132,16 +134,20 @@ def stay_at_menu_or_go_main(choice_name):
 
 def print_list(list_object):
 
-    mytable = PrettyTable([key for key in list_object[0].keys()])
+
+    if (len(list_object) != 0):
+
+        mytable = PrettyTable([key for key in list_object[0].keys()])
   #  result = '' 
   #  key_to_print_string = ' , '.join(key for key in list_object[0].keys())
 
-    for item in list_object:
-        mytable.add_row([value for value in item.values()])
+        for item in list_object:
+            mytable.add_row([value for value in item.values()])
      #   result += ' , '.join(str(value) for value in item.values())+ '\n'
-    print(mytable)
+        print(mytable)
    # print(key_to_print_string)
    # print(result)
+
 
 
 ##################################################
