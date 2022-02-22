@@ -173,8 +173,12 @@ def update_order():
     else:
         list_of_product_for_order = items_input.split(',')
 
-        connection_to_db = methods.connect_to_db()
+        db_connection = methods.connect_to_db()
+        product_id_query = f'''SELECT product_id FROM Products_On_Orders WHERE order_id = {updated_order_id} '''
+        rows_in_db = methods.select_query(db_connection ,product_id_query)
+        methods.close_db(db_connection)
 
+        connection_to_db = methods.connect_to_db()
         delete_order_query = f'''DELETE FROM Products_On_Orders WHERE order_id = {updated_order_id} '''
         methods.commit_query(connection_to_db ,delete_order_query)
         methods.close_db(connection_to_db)
@@ -186,6 +190,53 @@ def update_order():
             values ({updated_order_id} , {int(list_of_product_for_order[index])})'''
             methods.commit_query(connection_2 , update_items_of_order_query)
             methods.close_db(connection_2)
+
+            connect_1 = methods.connect_to_db()
+            query = f'''select * from Product_Inventory where product_id = {int(list_of_product_for_order[index])}'''
+            data = methods.select_query(connect_1,query )
+            methods.close_db(connect_1)
+
+            for row in data:
+                stock_quantity = row[2] 
+                price_per_unit = row[3]
+
+                connect_2 = methods.connect_to_db()
+                query =  f'''update Product_Inventory set Inventory_Value = {float(stock_quantity-1) * float(price_per_unit)} ,
+                 Stock_Quantity = {float(stock_quantity - 1)} where product_id = {int(list_of_product_for_order[index])}'''
+                methods.commit_query(connect_2, query)
+                methods.close_db(connect_2)
+
+
+        for row in rows_in_db:
+            product_id = int(row[0])
+
+            connect_1 = methods.connect_to_db()
+            query = f'''select * from Product_Inventory where product_id = {product_id}'''
+            data = methods.select_query(connect_1,query )
+            methods.close_db(connect_1)
+
+            for row in data:
+                stock_quantity = row[2] 
+                price_per_unit = row[3]
+
+                connect_2 = methods.connect_to_db()
+                query =  f'''update Product_Inventory set Inventory_Value = {float(stock_quantity +1) * float(price_per_unit)} ,
+                 Stock_Quantity = {float(stock_quantity+1)} where product_id = {product_id}'''
+                methods.commit_query(connect_2, query)
+                methods.close_db(connect_2)
+
+        # connection_to_db = methods.connect_to_db()
+        # delete_order_query = f'''DELETE FROM Products_On_Orders WHERE order_id = {updated_order_id} '''
+        # methods.commit_query(connection_to_db ,delete_order_query)
+        # methods.close_db(connection_to_db)
+
+        # for index in range(len(list_of_product_for_order)):
+
+        #     connection_2 = methods.connect_to_db()
+        #     update_items_of_order_query = f'''Insert into Products_On_Orders (order_id, product_id) 
+        #     values ({updated_order_id} , {int(list_of_product_for_order[index])})'''
+        #     methods.commit_query(connection_2 , update_items_of_order_query)
+        #     methods.close_db(connection_2)
 
 
     if not(courier_id):
