@@ -191,8 +191,8 @@ def display_courier_menu():
             if row[0] != 0:
 
                 os.system('cls')
-                print('''>>>> Courier is holding an order, can\'t delete it.\n>>>> Try change couriers in Orders Table, then delete this courier!''')
-                time.sleep(2)
+                print('''>>>> Courier is holding an order, can\'t delete it.\n>>>> You Can delete this order from Orders Table, then delete the courier!''')
+                time.sleep(3)
                 pass
                 break
                     

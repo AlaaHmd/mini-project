@@ -29,6 +29,7 @@ def main():
                              [ 1 ] Products Menu Options 
                              [ 2 ] Couriers Menu Options 
                              [ 3 ] Orders Menu Options
+                             [ 4 ] Customers
                              
                              Please enter your choice:  '''
 
@@ -51,6 +52,9 @@ def main():
             Couriers.display_courier_menu( )
         elif user_input == '3':
             Orders.display_orders_menu()
+
+        elif user_input == '4':
+            methods.convert_csv_db('Customers')
     
 
 main()

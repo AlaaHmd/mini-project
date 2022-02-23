@@ -138,16 +138,11 @@ def print_list(list_object):
     if (len(list_object) != 0):
 
         mytable = PrettyTable([key for key in list_object[0].keys()])
-  #  result = '' 
-  #  key_to_print_string = ' , '.join(key for key in list_object[0].keys())
 
         for item in list_object:
             mytable.add_row([value for value in item.values()])
-     #   result += ' , '.join(str(value) for value in item.values())+ '\n'
         print(mytable)
-   # print(key_to_print_string)
-   # print(result)
-
+ 
 
 
 ##################################################
@@ -202,12 +197,12 @@ def show_product_inventory():
 
     db_rows = select_query(connection_object, query)
 
-    inventory_list = []
-    for row in db_rows:
-            inventory_list.append({'Product id' :row[0], 'Product name': row[1],
-             'Product Stock_Quantity': float(row[2]), 'Product unit price': float(row[3]),
-              'Product Inventory Value': float(row[4]) })
-    return inventory_list
+    # inventory_list = []
+    # for row in db_rows:
+    #         inventory_list.append({'Product id' :row[0], 'Product name': row[1],
+    #          'Product Stock_Quantity': float(row[2]), 'Product unit price': float(row[3]),
+    #           'Product Inventory Value': float(row[4]) })
+    return db_to_list(db_rows, 'Product_Inventory')
 
 ######################################################
 
@@ -220,26 +215,38 @@ def convert_csv_db(file_name):
 
         with open (file_name +'.csv', 'r', newline='' ) as file_content:
             data = csv.reader(file_content)
+            # to retrieve the fieldsname
             header = next(data)
 
-        if file_name == 'Orders':
-            for row in data:
-                cursor.execute(
+            if file_name == 'Orders':
+                for row in data:
+                    cursor.execute(
         "INSERT INTO Orders (customer_name, customer_address, customer_phone, courier_id, status, items) VALUES ( %s, %s, %s,%s,%s, %s)", row)
-                connection.commit()
+                    connection.commit()
 
-        elif file_name == 'Products':
-            for row in data:
-                cursor.execute(
+            elif file_name == 'Products':
+                for row in data:
+                    cursor.execute(
         "INSERT INTO Products (name, price) VALUES ( %s, %s)", row)
-                connection.commit() 
+                    connection.commit() 
 
-        elif file_name == 'Couriers':
-            for row in data:
-                cursor.execute(
+            elif file_name == 'Couriers':
+                for row in data:
+                    cursor.execute(
         "INSERT INTO Couriers (name, phone) VALUES ( %s, %s)", row)
-                connection.commit() 
+                    connection.commit() 
 
+            elif file_name == 'Customers':
+                for row in data:
+                    cursor.execute(
+        "INSERT INTO Customers (name, address, phone) VALUES ( %s, %s,%s)", row)
+                    connection.commit() 
+
+        cursor.close()
+        connection.close()
+        os.system('cls')
+        print('CSV has been transfered to Database.')
+        time.sleep(3)
     except FileNotFoundError as err:
         print('Can\'t open the file')
 

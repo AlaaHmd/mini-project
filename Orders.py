@@ -225,19 +225,6 @@ def update_order():
                 methods.commit_query(connect_2, query)
                 methods.close_db(connect_2)
 
-        # connection_to_db = methods.connect_to_db()
-        # delete_order_query = f'''DELETE FROM Products_On_Orders WHERE order_id = {updated_order_id} '''
-        # methods.commit_query(connection_to_db ,delete_order_query)
-        # methods.close_db(connection_to_db)
-
-        # for index in range(len(list_of_product_for_order)):
-
-        #     connection_2 = methods.connect_to_db()
-        #     update_items_of_order_query = f'''Insert into Products_On_Orders (order_id, product_id) 
-        #     values ({updated_order_id} , {int(list_of_product_for_order[index])})'''
-        #     methods.commit_query(connection_2 , update_items_of_order_query)
-        #     methods.close_db(connection_2)
-
 
     if not(courier_id):
         pass
@@ -307,25 +294,26 @@ def print_orders():
 
     os.system('cls')
     connection = methods.connect_to_db()
-    orders_query = '''SELECT Orders.order_id,Products_On_Orders.product_id,Products.name,
-     Orders.customer_name, Orders.customer_address, 
-     Orders.customer_phone, Orders.courier_id, Order_Status.status
+    orders_query = '''SELECT Orders.order_id,  Orders.customer_name,  Orders.customer_address,
+     Orders.customer_phone, Orders.courier_id,   Order_Status.status, GROUP_CONCAT(Products_On_Orders.product_id)
+     , GROUP_CONCAT(Products.name)
     from Orders
     left join Order_Status on Order_Status.id = Orders.status_id
-    left JOIN Products_On_Orders on Products_On_Orders.order_id = Orders.order_id
+    left join Products_On_Orders on Products_On_Orders.order_id = Orders.order_id
     left join Products on Products.id = Products_On_Orders.product_id 
+    GROUP BY Orders.order_id
            '''
     db_rows = methods.select_query(connection, orders_query)
-    mytable = PrettyTable(['order_id', 'product_id' , 'product_name ', 'customer_name',
-    'customer_address','customer_phone', 'courier_id','status'])
+    mytable = PrettyTable(['order_id', 'customer_name',
+    'customer_address','customer_phone', 'courier_id','status', 'product_id' , 'product_name '])
+
     print('Orders List:\n')
+
     for row in db_rows:
         mytable.add_row(row)
     print(mytable)
     time.sleep(2)
   
-
-
 
 
 def delete_order():
@@ -363,6 +351,7 @@ def delete_order():
 
             methods.commit_query(connection_to_db , update_query)
             methods.close_db(connection_to_db)
+
 
 
 ########################################################
@@ -500,6 +489,7 @@ def display_orders_menu():
 
         elif order_user_input1 == '7':
 
+            os.system('cls')
             methods.write_db_to_csvfile('Orders')
             
             running = methods.stay_at_menu_or_go_main('Orders')
